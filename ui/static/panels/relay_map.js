@@ -103,6 +103,32 @@
     return positionsByUav.has(node) ? positionsByUav.get(node) : null;
   }
 
+  // --- Fault events (A17/CP6 on-screen markers) ---
+  // Fault events are numbered in time order ("EVENT 1", "EVENT 2", ...), each
+  // paired with the event that ends it: link_degraded -> the next
+  // link_restored for the same uav (a timer, not a recovery); uav_fail /
+  // uav_dropout / uav_recharge -> the next "restored" for the same uav, i.e.
+  // the chain recovering via other relays. recoveryS is computed from the
+  // raw t_s floats, never from rounded display strings.
+  const FAULT_TYPES = { link_degraded: "link DEGRADED", uav_dropout: "DROPOUT", uav_fail: "FAILED", uav_recharge: "RECHARGE" };
+
+  function pairFaultEvents(events) {
+    const sorted = events.slice().sort((a, b) => a.t_s - b.t_s);
+    const out = [];
+    for (const e of sorted) {
+      if (!(e.type in FAULT_TYPES)) continue;
+      const endType = e.type === "link_degraded" ? "link_restored" : "restored";
+      const end = sorted.find((x) => x.type === endType && x.uav === e.uav && x.t_s > e.t_s) || null;
+      out.push({
+        n: out.length + 1,
+        ev: e,
+        end: end,
+        recoveryS: end && endType === "restored" ? end.t_s - e.t_s : null,
+      });
+    }
+    return out;
+  }
+
   // --- Playback state (module-scoped: persists across app.js's poll-driven
   // render() calls, which is what lets play/scrub/speed work independently
   // of the ~500ms poll cadence) ---
@@ -237,10 +263,13 @@
     const banner = document.createElement("div");
     rootEl.appendChild(banner);
 
+    const eventLog = document.createElement("div");
+    rootEl.appendChild(eventLog);
+
     const legend = document.createElement("div");
     rootEl.appendChild(legend);
 
-    return { root: rootEl, notes, playBtn, slider, readout, speedSelect, svgContainer, banner, legend };
+    return { root: rootEl, notes, playBtn, slider, readout, speedSelect, svgContainer, banner, eventLog, legend };
   }
 
   function updateNotes(state) {
@@ -393,7 +422,63 @@
       }
     }
 
+    // --- fault-event markers (A17/CP6), drawn last so they sit on top ---
+    const faults = state.events_available && t !== null ? pairFaultEvents(state.events) : [];
+    for (const f of faults) {
+      if (f.ev.t_s > t + 1e-6) continue;
+      const nodePos = positionsByUav.get(f.ev.uav);
+      const ended = f.end && f.end.t_s <= t + 1e-6;
+      if (nodePos && !(ended && f.ev.type === "link_degraded")) {
+        const [x, y] = project(nodePos[0], nodePos[1]);
+        const color = f.ev.type === "link_degraded" ? COLOR_DEGRADED : COLOR_BAD;
+        svg.appendChild(svgEl("circle", { cx: x, cy: y, r: 13, fill: "none", stroke: color, "stroke-width": 2, "stroke-dasharray": "4 3" }));
+        svg.appendChild(textEl(x - 16, y - 16, "E" + f.n + " " + FAULT_TYPES[f.ev.type] + " t=" + f.ev.t_s.toFixed(1) + "s", { fill: color, size: 12, anchor: "end" }));
+      }
+      if (ended && f.recoveryS !== null && surveyorUav !== null && positionsByUav.has(surveyorUav)) {
+        const sp = positionsByUav.get(surveyorUav);
+        const [x, y] = project(sp[0], sp[1]);
+        svg.appendChild(textEl(x + 10, y + 20, "E" + f.n + " RECOVERED t=" + f.end.t_s.toFixed(1) + "s (" + f.recoveryS.toFixed(1) + "s)", { fill: COLOR_GOOD, size: 12 }));
+      }
+    }
+
     dom.svgContainer.appendChild(svg);
+
+    // --- event log (A17/CP6): every fault event reached so far. Raw t_s /
+    // recovery floats ride along as data-* attributes so the display can be
+    // checked against uavx/logs/event_metrics.json exactly, not rounded. ---
+    dom.eventLog.innerHTML = "";
+    dom.eventLog.style.marginTop = "8px";
+    dom.eventLog.style.fontSize = "12px";
+    dom.eventLog.style.fontFamily = "ui-monospace, monospace";
+    const reached = faults.filter((f) => f.ev.t_s <= t + 1e-6);
+    if (!reached.length) {
+      dom.eventLog.textContent = faults.length ? "events: none yet at this tick" : "events: none in this run";
+      dom.eventLog.style.color = "#8a929b";
+    }
+    for (const f of reached) {
+      const row = document.createElement("div");
+      row.className = "fault-event";
+      row.dataset.eventN = String(f.n);
+      row.dataset.eventType = f.ev.type;
+      row.dataset.node = "relay_" + f.ev.uav;
+      row.dataset.tS = String(f.ev.t_s);
+      let text = "EVENT " + f.n + "  t=" + f.ev.t_s.toFixed(1) + "s  relay_" + f.ev.uav + "  " + FAULT_TYPES[f.ev.type];
+      let color = f.ev.type === "link_degraded" ? COLOR_DEGRADED : COLOR_BAD;
+      if (f.end && f.end.t_s <= t + 1e-6) {
+        row.dataset.endType = f.end.type;
+        row.dataset.endTS = String(f.end.t_s);
+        if (f.recoveryS !== null) {
+          row.dataset.recoveryS = String(f.recoveryS);
+          text += "  ->  chain RECOVERED t=" + f.end.t_s.toFixed(1) + "s, recovery " + f.recoveryS.toFixed(1) + "s";
+          color = COLOR_GOOD;
+        } else {
+          text += "  ->  link restored t=" + f.end.t_s.toFixed(1) + "s";
+        }
+      }
+      row.textContent = text;
+      row.style.color = color;
+      dom.eventLog.appendChild(row);
+    }
 
     if (!chainOk) {
       const banner = document.createElement("div");
@@ -440,6 +525,17 @@
 
     if (!hasInitializedIndex && ticks.length > 0) {
       currentTickIndex = 0; // default: paused at tick 0 on load
+      // Optional deep link: open paused at the recorded tick nearest
+      // "#t=<seconds>" (e.g. http://127.0.0.1:8080/#t=205.4). Read once.
+      const m = /(?:^#|&)t=([0-9.]+)/.exec(window.location.hash || "");
+      if (m) {
+        const want = Number(m[1]);
+        let best = 0;
+        for (let i = 1; i < ticks.length; i++) {
+          if (Math.abs(ticks[i] - want) < Math.abs(ticks[best] - want)) best = i;
+        }
+        currentTickIndex = best;
+      }
       hasInitializedIndex = true;
     }
     if (currentTickIndex > ticks.length - 1) currentTickIndex = Math.max(0, ticks.length - 1);
