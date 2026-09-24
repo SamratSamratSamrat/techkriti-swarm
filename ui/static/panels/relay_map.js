@@ -38,11 +38,10 @@
     return COLOR_BAD;
   }
 
-  // Deterministic projection from the current frame's own data -- no
-  // history, no randomness -- so screen positions only move as far as the
-  // underlying x_m/y_m actually moved between polls. PoIs are static and
-  // usually dominate the bounding box, which keeps the view from
-  // panning/zooming every tick even though it's recomputed every tick.
+  // Deterministic projection, fitted to the bounds of the whole recorded
+  // run (every position at every tick + every PoI -- see runPoints), so the
+  // view never pans or zooms during replay and screen positions move only
+  // as far as the underlying x_m/y_m actually moved.
   function computeProjection(points) {
     let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
     for (const [x, y] of points) {
@@ -63,11 +62,23 @@
     // top/bottom of the (shorter) canvas for any layout taller than wide.
     const halfX = (Math.max(maxX - minX, MIN_SPAN_M) / 2) * (1 + MARGIN_FRAC);
     const halfY = (Math.max(maxY - minY, MIN_SPAN_M) / 2) * (1 + MARGIN_FRAC);
-    const scale = Math.min((WIDTH / 2) / halfX, (HEIGHT / 2) / halfY);
+    // Fixed pixel room for labels, which are drawn to the right of (and a
+    // little above/below) their markers -- so the outermost labels aren't
+    // clipped by the tightly-fitted canvas edge.
+    const PAD_L = 16, PAD_R = 44, PAD_Y = 16;
+    const scale = Math.min((WIDTH - PAD_L - PAD_R) / (2 * halfX), (HEIGHT - 2 * PAD_Y) / (2 * halfY));
+    // Size the canvas to the data's own aspect ratio (within WIDTH x HEIGHT)
+    // instead of a fixed 760x560 box, so a tall layout doesn't leave dead
+    // space at the sides. One scale for both axes: distances stay true.
+    const w = Math.round(2 * halfX * scale + PAD_L + PAD_R);
+    const h = Math.round(2 * halfY * scale + 2 * PAD_Y);
 
-    return function project(x, y) {
-      return [WIDTH / 2 + (x - cx) * scale, HEIGHT / 2 - (y - cy) * scale]; // y inverted: north up
+    const project = function (x, y) {
+      return [PAD_L + halfX * scale + (x - cx) * scale, PAD_Y + halfY * scale - (y - cy) * scale]; // y inverted: north up
     };
+    project.width = w;
+    project.height = h;
+    return project;
   }
 
   function svgEl(tag, attrs) {
@@ -88,6 +99,27 @@
     });
     el.textContent = content;
     return el;
+  }
+
+  // Marker label that won't overlap an earlier label in the same frame: if
+  // its (approximate, monospace) box hits one already placed, it steps down
+  // one line at a time until clear. Same text/colour/size as textEl -- only
+  // the y position changes. Edge PDR labels don't use this (they sit on
+  // their own background box mid-edge).
+  function labelEl(x, y, content, opts) {
+    opts = opts || {};
+    const size = opts.size || 10;
+    const w = content.length * size * 0.62;
+    let x0 = opts.anchor === "end" ? x - w : opts.anchor === "middle" ? x - w / 2 : x;
+    // Keep the whole label inside the canvas (shift sideways if it would clip).
+    const dx = x0 < 2 ? 2 - x0 : x0 + w > canvasW - 2 ? canvasW - 2 - (x0 + w) : 0;
+    x0 += dx;
+    x += dx;
+    const hits = (yy) => placedLabels.some((b) => x0 < b.x1 && x0 + w > b.x0 && yy - size < b.y1 && yy + 2 > b.y0);
+    let yy = y;
+    for (let i = 0; i < 12 && hits(yy); i++) yy += size + 3;
+    placedLabels.push({ x0: x0, x1: x0 + w, y0: yy - size, y1: yy + 2 });
+    return textEl(x, yy, content, opts);
   }
 
   // node name (as it appears in chain.path) -> [x_m, y_m], or null if this
@@ -137,6 +169,9 @@
   let ticks = [];                       // sorted distinct t_s values across positions+chains
   let positionsByTick = new Map();      // t_s -> array of position rows at that tick
   let chainByTick = new Map();          // t_s -> chain row at that tick
+  let runPoints = [];                   // [x, y] of every position (all ticks) + every PoI -- projection bounds
+  let placedLabels = [];                // this frame's label boxes, for overlap staggering
+  let canvasW = WIDTH;                  // this frame's canvas width, for label clamping
   let currentTickIndex = 0;
   let hasInitializedIndex = false;      // true once ticks has been non-empty at least once
   let playing = false;
@@ -303,9 +338,9 @@
     dom.svgContainer.innerHTML = "";
     dom.banner.innerHTML = "";
 
-    const points = [];
-    for (const p of framePositions) points.push([p.x_m, p.y_m]);
-    for (const p of pois) points.push([p.x_m, p.y_m]);
+    // Fit to the WHOLE run (every recorded position + every PoI), not just
+    // this frame, so the view is fixed for the replay instead of re-zooming.
+    const points = runPoints.length ? runPoints : framePositions.map((p) => [p.x_m, p.y_m]);
 
     if (points.length === 0) {
       const msg = document.createElement("div");
@@ -316,13 +351,15 @@
     }
 
     const project = computeProjection(points);
-    const svg = svgEl("svg", { width: WIDTH, height: HEIGHT, viewBox: `0 0 ${WIDTH} ${HEIGHT}`, style: "background:#0b0e11;border:1px solid #2c333b;" });
+    const svg = svgEl("svg", { width: project.width, height: project.height, viewBox: `0 0 ${project.width} ${project.height}`, style: "background:#0b0e11;border:1px solid #2c333b;" });
+    placedLabels = [];
+    canvasW = project.width;
 
     // --- PoI markers (small, unobtrusive, drawn first so the fleet sits on top) ---
     for (const poi of pois) {
       const [x, y] = project(poi.x_m, poi.y_m);
       svg.appendChild(svgEl("rect", { x: x - 2.5, y: y - 2.5, width: 5, height: 5, fill: "#555f6b", stroke: "#8a929b", "stroke-width": 0.5 }));
-      svg.appendChild(textEl(x + 5, y - 4, "poi" + poi.id, { fill: "#8a929b", size: 9 }));
+      svg.appendChild(labelEl(x + 5, y - 4, "poi" + poi.id, { fill: "#8a929b", size: 9 }));
     }
 
     // --- positions lookup, for resolving chain nodes ---
@@ -398,27 +435,27 @@
       const [x, y] = project(p.x_m, p.y_m);
       if (p.role === "base") {
         svg.appendChild(svgEl("rect", { x: x - 6, y: y - 6, width: 12, height: 12, fill: "#58a6ff", stroke: "#e6e6e6", "stroke-width": 1.5 }));
-        svg.appendChild(textEl(x + 9, y + 4, "BASE", { fill: "#58a6ff", size: 11 }));
+        svg.appendChild(labelEl(x + 9, y + 4, "BASE", { fill: "#58a6ff", size: 11 }));
       } else if (p.role === "surveyor") {
         svg.appendChild(svgEl("circle", { cx: x, cy: y, r: 7, fill: "#e3b341", stroke: "#e6e6e6", "stroke-width": 1.5 }));
-        svg.appendChild(textEl(x + 10, y + 4, "S" + p.uav + " surveyor", { fill: "#e3b341", size: 11 }));
+        svg.appendChild(labelEl(x + 10, y + 4, "S" + p.uav + " surveyor", { fill: "#e3b341", size: 11 }));
       } else if (p.role === "relay" && offlineRelayIds.has(p.uav)) {
         // Dropped out / failed: red with an X, never the idle-grey styling.
         svg.appendChild(svgEl("circle", { cx: x, cy: y, r: 7, fill: COLOR_BAD, stroke: "#e6e6e6", "stroke-width": 1 }));
         svg.appendChild(svgEl("line", { x1: x - 4, y1: y - 4, x2: x + 4, y2: y + 4, stroke: "#ffffff", "stroke-width": 2 }));
         svg.appendChild(svgEl("line", { x1: x - 4, y1: y + 4, x2: x + 4, y2: y - 4, stroke: "#ffffff", "stroke-width": 2 }));
-        svg.appendChild(textEl(x + 10, y + 4, "R" + p.uav + " OFFLINE", { fill: COLOR_BAD, size: 12 }));
+        svg.appendChild(labelEl(x + 10, y + 4, "R" + p.uav + " OFFLINE", { fill: COLOR_BAD, size: 12 }));
       } else if (p.role === "relay") {
         const onChain = onChainRelayIds.has(p.uav);
         const fill = onChain ? COLOR_RELAY : COLOR_IDLE;
         const label = onChain ? ("R" + p.uav) : ("R" + p.uav + " idle/standby");
         svg.appendChild(svgEl("circle", { cx: x, cy: y, r: 5.5, fill: fill, stroke: "#e6e6e6", "stroke-width": 1 }));
-        svg.appendChild(textEl(x + 8, y + 4, label, { fill: fill, size: 11 }));
+        svg.appendChild(labelEl(x + 8, y + 4, label, { fill: fill, size: 11 }));
       } else {
         // role missing/unknown -- generic relay-style dot, can't tell idle
         // status without role (see ui/DATA_CONTRACT.md).
         svg.appendChild(svgEl("circle", { cx: x, cy: y, r: 5.5, fill: COLOR_RELAY, stroke: "#e6e6e6", "stroke-width": 1 }));
-        svg.appendChild(textEl(x + 8, y + 4, "R" + p.uav, { fill: COLOR_RELAY, size: 11 }));
+        svg.appendChild(labelEl(x + 8, y + 4, "R" + p.uav, { fill: COLOR_RELAY, size: 11 }));
       }
     }
 
@@ -432,12 +469,12 @@
         const [x, y] = project(nodePos[0], nodePos[1]);
         const color = f.ev.type === "link_degraded" ? COLOR_DEGRADED : COLOR_BAD;
         svg.appendChild(svgEl("circle", { cx: x, cy: y, r: 13, fill: "none", stroke: color, "stroke-width": 2, "stroke-dasharray": "4 3" }));
-        svg.appendChild(textEl(x - 16, y - 16, "E" + f.n + " " + FAULT_TYPES[f.ev.type] + " t=" + f.ev.t_s.toFixed(1) + "s", { fill: color, size: 12, anchor: "end" }));
+        svg.appendChild(labelEl(x - 16, y - 16, "E" + f.n + " " + FAULT_TYPES[f.ev.type] + " t=" + f.ev.t_s.toFixed(1) + "s", { fill: color, size: 12, anchor: "end" }));
       }
       if (ended && f.recoveryS !== null && surveyorUav !== null && positionsByUav.has(surveyorUav)) {
         const sp = positionsByUav.get(surveyorUav);
         const [x, y] = project(sp[0], sp[1]);
-        svg.appendChild(textEl(x + 10, y + 20, "E" + f.n + " RECOVERED t=" + f.end.t_s.toFixed(1) + "s (" + f.recoveryS.toFixed(1) + "s)", { fill: COLOR_GOOD, size: 12 }));
+        svg.appendChild(labelEl(x + 10, y + 20, "E" + f.n + " RECOVERED t=" + f.end.t_s.toFixed(1) + "s (" + f.recoveryS.toFixed(1) + "s)", { fill: COLOR_GOOD, size: 12 }));
       }
     }
 
@@ -522,6 +559,9 @@
     ticks = idx.ticks;
     positionsByTick = idx.posByTick;
     chainByTick = idx.chByTick;
+    runPoints = [];
+    if (state.positions_available) for (const p of state.positions) runPoints.push([p.x_m, p.y_m]);
+    if (state.pois_available) for (const p of state.pois) runPoints.push([p.x_m, p.y_m]);
 
     if (!hasInitializedIndex && ticks.length > 0) {
       currentTickIndex = 0; // default: paused at tick 0 on load
