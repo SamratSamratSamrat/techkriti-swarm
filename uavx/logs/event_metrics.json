@@ -4,7 +4,7 @@
     "gps_class": "ideal_sim",
     "wind": "none",
     "n_uav": 4,
-    "r_comm_m": 150.0,
+    "r_comm_m": 100.0,
     "event_set": "a23-only",
     "scenario": "claude/scenario_config.json"
   },
@@ -12,44 +12,11 @@
     {
       "event": "link_degraded",
       "fraction_target": 0.4,
-      "node": "relay_3",
-      "t_s": 104.60000000000001,
-      "selected_from_report": {
-        "poi": 5,
-        "report_t_s": 104.4,
-        "carrying_relay_ids": [
-          2,
-          3
-        ],
-        "chain_path_at_report_tick": [
-          "base",
-          "relay_2",
-          "relay_3",
-          1
-        ]
-      },
-      "target_in_carrying_relay_ids": true,
-      "target_on_live_chain_at_fire_tick": true,
-      "window_end_t_s": 119.60000000000001,
-      "recovery_time_s": null,
-      "recovery_time_quality": "not_applicable",
-      "recovery_time_reason": "degradation never breaks connectivity (BFS uses undegraded distances) and never triggers reconfigure(); link_restored is a DEGRADE_DURATION_S timer, not a measured recovery -- uavx/RULES_NOTES.md section 12",
-      "relay_reallocations": 0,
-      "relay_reallocations_quality": "by_construction",
-      "relay_reallocations_basis": "no reconfigure() call is caused by a degradation, so no fault-driven reallocation exists; serves-set changes that happened to fall inside the window are counted separately below and are all routine surveyor_drift",
-      "serves_changes_during_window": 3,
-      "serves_changes_during_window_causes": [
-        "surveyor_drift"
-      ]
-    },
-    {
-      "event": "uav_dropout",
-      "fraction_target": 0.75,
       "node": "relay_2",
-      "t_s": 205.4,
+      "t_s": 113.0,
       "selected_from_report": {
-        "poi": 4,
-        "report_t_s": 205.20000000000002,
+        "poi": 6,
+        "report_t_s": 112.80000000000001,
         "carrying_relay_ids": [
           2
         ],
@@ -61,10 +28,41 @@
       },
       "target_in_carrying_relay_ids": true,
       "target_on_live_chain_at_fire_tick": true,
-      "recovery_time_s": 6.599999999999994,
+      "window_end_t_s": 128.0,
+      "recovery_time_s": null,
+      "recovery_time_quality": "not_applicable",
+      "recovery_time_reason": "degradation never breaks connectivity (BFS uses undegraded distances) and never triggers reconfigure(); link_restored is a DEGRADE_DURATION_S timer, not a measured recovery -- uavx/RULES_NOTES.md section 12",
+      "relay_reallocations": 0,
+      "relay_reallocations_quality": "by_construction",
+      "relay_reallocations_basis": "no reconfigure() call is caused by a degradation, so no fault-driven reallocation exists; serves-set changes that happened to fall inside the window are counted separately below and are all routine surveyor_drift",
+      "serves_changes_during_window": 2,
+      "serves_changes_during_window_causes": [
+        "surveyor_drift"
+      ]
+    },
+    {
+      "event": "uav_dropout",
+      "fraction_target": 0.75,
+      "node": "relay_2",
+      "t_s": 165.8,
+      "selected_from_report": {
+        "poi": 4,
+        "report_t_s": 165.60000000000002,
+        "carrying_relay_ids": [
+          2
+        ],
+        "chain_path_at_report_tick": [
+          "base",
+          "relay_2",
+          1
+        ]
+      },
+      "target_in_carrying_relay_ids": true,
+      "target_on_live_chain_at_fire_tick": true,
+      "recovery_time_s": 4.400000000000006,
       "recovery_time_quality": "measured",
       "recovery_time_reason": null,
-      "restored_t_s": 212.0,
+      "restored_t_s": 170.20000000000002,
       "relay_reallocations": 1,
       "relay_reallocations_quality": "measured",
       "relay_reallocations_basis": "assignment rows tagged cause=poi_report_dropout (score/profiles.py)"
@@ -73,22 +71,22 @@
   "fault_notes": [],
   "run_level": {
     "packet_delivery_ratio": {
-      "value": 0.7955801104972375,
+      "value": 0.8581081081081081,
       "unit": "ratio",
       "quality": "measured"
     },
     "latency_ms_mean": {
-      "value": 44.32933415938875,
+      "value": 45.77619591373535,
       "unit": "ms",
       "quality": "measured"
     },
     "latency_ms_p95": {
-      "value": 63.93599686377914,
+      "value": 66.12452464782726,
       "unit": "ms",
       "quality": "measured"
     },
     "connectivity_downtime_s": {
-      "value": 26.199999999999996,
+      "value": 17.40000000000001,
       "unit": "s",
       "quality": "approx",
       "reason": "downtime after each PoI's last sample is not counted (no end timestamp to close the interval)"
@@ -129,5 +127,5 @@
       "quality": "measured"
     }
   },
-  "scenario_sha256": "348d1bf490a2b67a4a0cf91469352b1e838b1a717ae63e2f0d4c91f1e36ceb51"
+  "scenario_sha256": "4677beceaa16ea2530ee708f95a6ae1ed0b180857988e8176d13cfa5cee75d04"
 }

@@ -21,15 +21,22 @@ import unittest
 from uavx import config, survey
 from score.profiles import PROFILES
 
-# (n_uav, seed) runs chosen from a seed scan (see RULES_NOTES.md section 12):
-#   (5, 42):  degrade fires; dropout fires, never restored
-#   (5, 16):  degrade fires; dropout fires AND is restored
-#   (4, 101): the A20 4-UAV evidence config -- degrade fires, dropout cannot
-#   (4, 16):  degrade passes over a report with no relay on its chain, then
+# (n_uav, seed) runs chosen from a seed scan (see RULES_NOTES.md section 12).
+# Re-picked 24 Sep 2026 for the R_COMM_M=150->100 ruling: the old seeds'
+# behaviour was measured at 150 m and no longer holds at 100 m (relay
+# spacing r_comm*LINK_SOFT_BAND_FRAC dropped from 120 m to 80 m, changing
+# which seeds land each fault event where). Re-scanned seeds 1-120 at the
+# new range and picked the first seed matching each required behaviour:
+#   (5, 41):  degrade fires; dropout fires AND is restored (was (5, 16))
+#   (5, 58):  degrade fires; dropout fires, never restored (was (5, 42))
+#   (4, 9):   the A20 4-UAV evidence config -- degrade fires, dropout cannot
+#             fire (was (4, 101))
+#   (4, 3):   degrade passes over a report with no relay on its chain, then
 #             no later report succeeds -- degrade never fires, logged
-FIRES_DEGRADE = [(5, 42), (5, 16), (4, 101)]
-FIRES_DROPOUT = [(5, 42), (5, 16)]
-DROPOUT_CANNOT_FIRE = [(4, 101)]
+#             (was (4, 16))
+FIRES_DEGRADE = [(5, 41), (5, 58), (4, 9)]
+FIRES_DROPOUT = [(5, 41), (5, 58)]
+DROPOUT_CANNOT_FIRE = [(4, 9)]
 
 _cache: dict[tuple[int, int], dict] = {}
 
@@ -86,12 +93,12 @@ class ReportGatedSelection(unittest.TestCase):
                 self._check_event_targets_carrying_relay(_run(n_uav, seed), "link_degraded", "link_degraded_earliest_t_s")
 
     def test_relay_less_report_is_passed_over_and_logged(self):
-        # (4, 16): the first report after 40% had the surveyor linked
+        # (4, 3): the first report after 40% had the surveyor linked
         # straight to base, and no later report succeeded -- in a 240-run
         # seed scan every pass-over looked like this, so the "fires on a
         # LATER report" half of retry-forward is covered by the synthetic
         # test below instead.
-        t = _run(4, 16)
+        t = _run(4, 3)
         notes = [n for n in t["fault_notes"] if n["event"] == "link_degraded" and n["t_s"] is not None]
         self.assertTrue(notes)
         for n in notes:
@@ -152,7 +159,7 @@ class PerEventMetrics(unittest.TestCase):
     event, never only pooled."""
 
     def test_each_fault_event_has_its_own_recovery_and_reallocation_metric(self):
-        metrics = {m.name: m for m in PROFILES["uavx"].compute(_run(5, 16), {})}
+        metrics = {m.name: m for m in PROFILES["uavx"].compute(_run(5, 41), {})}
         for name in ("recovery_time_s_uav_fail", "recovery_time_s_uav_recharge", "recovery_time_s_uav_dropout"):
             self.assertEqual(metrics[name].quality, "measured", name)
         causes = ("relay_failure", "relay_recharge", "poi_report_dropout", "surveyor_drift")
@@ -162,7 +169,7 @@ class PerEventMetrics(unittest.TestCase):
         )
 
     def test_unrestored_dropout_is_unavailable_not_invented(self):
-        metrics = {m.name: m for m in PROFILES["uavx"].compute(_run(5, 42), {})}
+        metrics = {m.name: m for m in PROFILES["uavx"].compute(_run(5, 58), {})}
         self.assertEqual(metrics["recovery_time_s_uav_dropout"].quality, "unavailable")
 
 
@@ -178,7 +185,7 @@ class EventSetFlag(unittest.TestCase):
         self.assertEqual(t["conditions"]["event_set"], "a23-only")
 
     def test_default_still_runs_all_four(self):
-        t = _run(5, 42)
+        t = _run(5, 58)
         self.assertEqual(t["conditions"]["event_set"], "all")
         self.assertTrue({"uav_fail", "uav_recharge", "link_degraded", "uav_dropout"} <= {e["type"] for e in t["events"]})
 

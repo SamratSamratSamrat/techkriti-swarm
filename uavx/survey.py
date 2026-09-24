@@ -256,7 +256,7 @@ def load_scenario(path: str, base_pos: Point = (0.0, 0.0), r_comm: float = confi
     claude/scenario_config.json) instead of drawing one with _poi_scenario().
     Shape read:
 
-        {"base_pos": [x, y], "r_comm_m": 150.0,
+        {"base_pos": [x, y], "r_comm_m": 100.0,
          "pois": [{"id": "poi_1", "priority": 3, "pos": [x, y], ...}, ...]}
 
     Only id / priority / pos are used; any other per-PoI or top-level keys

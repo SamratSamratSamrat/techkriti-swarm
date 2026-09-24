@@ -1,63 +1,63 @@
 UAV-X Stage 1 -- A23 evidence run
 ============================================================
-seed/config : n_uav=4, r_comm_m=150.0, event_set=a23-only
-scenario    : claude/scenario_config.json (sha256 348d1bf490a2b67a...) -> copied to scenario_config.json
-duration    : 259.8 s simulated, tick 0.2 s
+seed/config : n_uav=4, r_comm_m=100.0, event_set=a23-only
+scenario    : claude/scenario_config.json (sha256 4677beceaa16ea25...) -> copied to scenario_config.json
+duration    : 214.4 s simulated, tick 0.2 s
 
 PoIs (from the scenario file)
-  PoI 1: priority 3, (100, 0) m
-  PoI 2: priority 1, (0, 110) m
-  PoI 6: priority 1, (-160, -128) m
-  PoI 4: priority 1, (0, 230) m
-  PoI 3: priority 3, (280, 0) m
-  PoI 5: priority 3, (0, -340) m
+  PoI 1: priority 3, (65, 0) m
+  PoI 2: priority 1, (0, 72) m
+  PoI 6: priority 1, (-97, -97) m
+  PoI 4: priority 1, (0, 153) m
+  PoI 3: priority 3, (187, 0) m
+  PoI 5: priority 3, (0, -227) m
 
 Timeline
   t=    0.0s  topology: base -> 1
-  t=    8.0s  surveyor arrives at PoI 1
-  t=   23.0s  PoI 1 report SUCCEEDS, carried by relays []
-  t=   27.4s  topology: base -> relay_2 -> 1
-  t=   37.4s  topology: (no chain: surveyor disconnected)
-  t=   38.0s  surveyor arrives at PoI 3
-  t=   48.0s  topology: base -> relay_3 -> 1
-  t=   49.8s  topology: base -> relay_2 -> relay_3 -> 1
-  t=   53.0s  PoI 3 report SUCCEEDS, carried by relays [2, 3]
-  t=   54.2s  topology: base -> relay_2 -> 1
-  t=   81.4s  topology: (no chain: surveyor disconnected)
-  t=   89.4s  surveyor arrives at PoI 5
-  t=   97.0s  topology: base -> relay_2 -> relay_3 -> 1
-  t=  104.4s  PoI 5 report SUCCEEDS, carried by relays [2, 3]
-  t=  104.6s  EVENT link_degraded on relay_3 (selected from PoI 5's report at t=104.4s)
-  t=  112.2s  topology: base -> relay_2 -> 1
-  t=  119.6s  EVENT link_restored on relay_3
-  t=  126.4s  surveyor arrives at PoI 6
-  t=  141.4s  PoI 6 report SUCCEEDS, carried by relays [2]
-  t=  146.4s  topology: base -> 1
-  t=  165.2s  surveyor arrives at PoI 2
-  t=  180.2s  PoI 2 report SUCCEEDS, carried by relays []
-  t=  183.8s  topology: base -> relay_2 -> 1
-  t=  190.2s  surveyor arrives at PoI 4
-  t=  205.2s  PoI 4 report SUCCEEDS, carried by relays [2]
-  t=  205.4s  EVENT uav_dropout on relay_2 (selected from PoI 4's report at t=205.2s)
-  t=  205.6s  topology: (no chain: surveyor disconnected)
-  t=  212.0s  EVENT restored on relay_2
-  t=  212.0s  topology: base -> relay_3 -> 1
+  t=    5.0s  surveyor arrives at PoI 1
+  t=   20.0s  PoI 1 report SUCCEEDS, carried by relays []
+  t=   23.2s  topology: base -> relay_2 -> 1
+  t=   29.8s  topology: (no chain: surveyor disconnected)
+  t=   30.2s  surveyor arrives at PoI 3
+  t=   36.8s  topology: base -> relay_3 -> 1
+  t=   38.0s  topology: base -> relay_2 -> relay_3 -> 1
+  t=   45.2s  PoI 3 report SUCCEEDS, carried by relays [2, 3]
+  t=   46.0s  topology: base -> relay_2 -> 1
+  t=   64.0s  topology: (no chain: surveyor disconnected)
+  t=   69.4s  surveyor arrives at PoI 5
+  t=   74.4s  topology: base -> relay_2 -> relay_3 -> 1
+  t=   84.4s  PoI 5 report SUCCEEDS, carried by relays [2, 3]
+  t=   89.6s  topology: base -> relay_2 -> 1
+  t=   97.8s  surveyor arrives at PoI 6
+  t=  112.8s  PoI 6 report SUCCEEDS, carried by relays [2]
+  t=  113.0s  EVENT link_degraded on relay_2 (selected from PoI 6's report at t=112.8s)
+  t=  116.2s  topology: base -> 1
+  t=  128.0s  EVENT link_restored on relay_2
+  t=  129.0s  surveyor arrives at PoI 2
+  t=  144.0s  PoI 2 report SUCCEEDS, carried by relays []
+  t=  146.4s  topology: base -> relay_2 -> 1
+  t=  150.6s  surveyor arrives at PoI 4
+  t=  165.6s  PoI 4 report SUCCEEDS, carried by relays [2]
+  t=  165.8s  EVENT uav_dropout on relay_2 (selected from PoI 4's report at t=165.6s)
+  t=  166.0s  topology: (no chain: surveyor disconnected)
+  t=  170.2s  EVENT restored on relay_2
+  t=  170.2s  topology: base -> relay_3 -> 1
 
 Per-event metrics (A23: reported separately, never pooled)
-  link_degraded on relay_3 at t=104.6s
+  link_degraded on relay_2 at t=113.0s
     target in the report's carrying_relay_ids: True; on the live chain at fire tick: True
     recovery_time_s    : n/a (not_applicable)
     relay_reallocations: 0 (by_construction)
-  uav_dropout on relay_2 at t=205.4s
+  uav_dropout on relay_2 at t=165.8s
     target in the report's carrying_relay_ids: True; on the live chain at fire tick: True
-    recovery_time_s    : 6.6 (measured)
+    recovery_time_s    : 4.4 (measured)
     relay_reallocations: 1 (measured)
 
 Run-level metrics
-  packet_delivery_ratio                    0.7956 ratio (measured)
-  latency_ms_mean                          44.3293 ms (measured)
-  latency_ms_p95                           63.936 ms (measured)
-  connectivity_downtime_s                  26.2 s (approx)
+  packet_delivery_ratio                    0.8581 ratio (measured)
+  latency_ms_mean                          45.7762 ms (measured)
+  latency_ms_p95                           66.1245 ms (measured)
+  connectivity_downtime_s                  17.4 s (approx)
   relay_reallocations                      17 count (measured)
   relay_reallocations_relay_failure        0 count (measured)
   relay_reallocations_relay_recharge       0 count (measured)

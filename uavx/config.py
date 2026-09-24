@@ -63,7 +63,7 @@ GEOFENCE_HALF_EXTENT_M = ARENA_HALF_EXTENT_M * 1.1
 # not present in the document available when this was written. Until it
 # arrives we use a threshold + linear-taper model, parameterised by a single
 # comms radius (see link.py for the physical reasoning behind the shape).
-R_COMM_M = 150.0
+R_COMM_M = 100.0
 LINK_SOFT_BAND_FRAC = 0.8  # PDR is 1.0 out to R_COMM_M * this fraction
 
 # --- PROVISIONAL: relay motion / battery. Not specified by the rulebook

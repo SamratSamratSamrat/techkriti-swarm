@@ -1150,3 +1150,154 @@ and `stage1_summary.txt`. Seed 1 recovered under this layout:
 
 Run-level: PDR 0.7956, latency mean 44.3 ms / p95 63.9 ms, poi_completion
 1.0 (6/6 reported), connectivity downtime 26.2 s (approx).
+
+## 13. Ruling: R_COMM_M 150 -> 100 (24 Sep 2026)
+
+**Master ruling, this date:** `R_COMM_M` changed from 150.0 to 100.0 m
+(`uavx/config.py:66`). It is the single source for the comms radius --
+nothing else in the logic hardcodes 150 -- but relay spacing
+(`assign.py`'s `GreedyChainAssigner`, `r_comm * LINK_SOFT_BAND_FRAC`) and
+every value tuned relative to it changed as a consequence. This section
+records what changed, what didn't, and what was verified rather than
+assumed.
+
+**Changed:**
+- `uavx/config.py:66` `R_COMM_M = 100.0`. Relay spacing dropped from 120 m
+  to 80 m.
+- `claude/scenario_config.json`: the PoI layout was regenerated, not just
+  rescaled. Verification method unchanged from the original 150 m
+  regeneration (see section 12, "Scenario layout regenerated against the
+  real assigner") -- `GreedyChainAssigner.assign()` called **once per PoI**
+  with only that PoI as the target and the full 3-relay pool available
+  (this is what "surveyor parked at each PoI" means: it matches how
+  `survey.py` actually calls `assign()` every tick, against the surveyor's
+  one current position, never against all 6 PoIs at once -- calling it
+  with all 6 simultaneously gives a different, wrong answer, because the
+  greedy assigner consumes relays permanently per call and starves later
+  PoIs; this was checked and ruled out before picking the final
+  coordinates). Result: 2 PoIs need 0 relays (poi_1 65 m, poi_2 72 m), 2
+  need 1 relay (poi_6 137 m, poi_4 153 m), 2 need 2 relays (poi_3 187 m,
+  poi_5 227 m) -- same 2/2/2 spread A23 requires, same 3/3 priority split.
+  Every path verified PDR 1.0. Every PoI also verified reachable with
+  every one of the three possible 2-of-3 relay pools (the post-dropout
+  fleet), not just one arbitrarily chosen pool.
+- `uavx/tests/test_a23_fault_selection.py`: the four hand-picked
+  `(n_uav, seed)` fixtures were behavior measured at 150 m and did not all
+  still hold at 100 m (re-run confirmed 8/13 tests failing before the
+  re-pick). Re-scanned seeds 1-120 at 100 m and replaced each fixture with
+  the first seed reproducing the same required behavior: `(5, 16)` ->
+  `(5, 41)` (degrade+dropout fire, dropout restored, fail/recharge/dropout
+  all "measured"), `(5, 42)` -> `(5, 58)` (degrade+dropout fire, dropout
+  never restored -> "unavailable"), `(4, 101)` -> `(4, 9)` (degrade fires,
+  dropout cannot fire), `(4, 16)` -> `(4, 3)` (degrade passes over a
+  report with no relay on its chain, then no later report succeeds --
+  degrade never fires). All 13 tests pass against the new seeds. The
+  `:214` deliberate-mismatch case (`r_comm_m: 120.0` against the scenario
+  file's real value) needed no change -- 120.0 still mismatches 100.0.
+- `survey.py`'s `load_scenario()` docstring example (cosmetic, was 150.0).
+- CP1-CP6 evidence pack regenerated in place at seed 1, N_UAV=4,
+  `--events a23-only`, `--scenario claude/scenario_config.json` (decision:
+  overwrite the existing `stage1_*` filenames; the 150 m versions stay
+  recoverable from git history at commit `ad4351c`). All 6 PoIs reported.
+  Both A23 events happened to land on the same node this run (relay_2 for
+  both degrade and dropout -- a different rng draw than the 150 m run's
+  relay_3/relay_2 split, not a bug). Dropout: recovered in 4.4 s via 1
+  reallocation. Run-level: PDR 0.8581, latency 45.8 ms mean / 66.1 ms p95,
+  poi_completion 1.0 (6/6).
+
+**Left alone, deliberately:**
+- `ARENA_HALF_EXTENT_M` (500 m, `config.py:51`): only affects the internal
+  random-layout mode (`_poi_scenario`), not `--scenario` runs. Not
+  relevant to any evidence-pack run, which always uses `--scenario`.
+- `DEGRADE_EXTRA_DISTANCE_M` (120 m, `config.py:120`): see below --
+  verified, not assumed, before leaving it unchanged.
+
+**Verified, not assumed: what `DEGRADE_EXTRA_DISTANCE_M=120` actually does
+at `R_COMM_M=100`.** At 150 m, +120 m to one hop's effective distance was
+sometimes only a partial drop on the linear PDR taper. At 100 m, `d + 120`
+is always `> r_comm` regardless of `d` (since `d >= 0`), so `pdr()` returns
+exactly 0.0 for that hop for the entire degradation window -- a full
+local blackout on that one hop, not a slowdown. Checked directly against
+the seed-1 evidence run's telemetry: for the ~3 s relay_2 stayed on-chain
+inside the t=113.0-128.0s degradation window, its incoming hop's PDR was
+exactly 0.0 every tick (113.2-116.0s), and 3 of that window's packets
+(t=114, 115, 116) were lost outright. At t=116.2s the chain switched to a
+direct base->surveyor link -- unrelated to the degradation, caused by the
+surveyor's own movement (tagged `surveyor_drift`, confirmed in
+`assignments[]`).
+
+The architectural claim survives unchanged and was re-verified against
+this run's telemetry directly, not assumed to still hold: BFS connectivity
+is computed on undegraded distances, so `chain.connected` never flips
+during the window, `reconfigure()` is never called, and
+`relay_reallocations` for the degrade event is genuinely 0
+("by_construction" -- `event_metrics.json`'s per-event record, this run).
+The 2 serves-set changes inside the window are both `surveyor_drift`, not
+fault-driven.
+
+**What does NOT survive unchanged: the CP3 narration line's wording.**
+`claude/SWARM_STAGE1_RELAY_POI_PLAN.md`'s ratified line -- *"a degradation
+doesn't break the link, it just gets slower"* -- described the 150 m
+behavior and is no longer an accurate description of the 100 m one: the
+affected hop doesn't get slower, it goes to exactly 0% delivery for as
+long as the affected relay stays on-chain during the window. The
+underlying resilience claim (no reallocation, because routing is
+distance-based and never observes the degradation) still holds and is
+arguably a sharper point for the paper -- the routing layer is blind to
+link quality, not merely slow to react to it -- but that is a different
+claim from "gets slower," and rewording CP3 is Master's call, not made
+here. Flagged to Master directly; not yet applied to
+`SWARM_STAGE1_RELAY_POI_PLAN.md`.
+
+**Still open as of this writing:** the 300-seed `a23-only` scan behind
+A25's "2/300 race condition, seed 1 clean" finding was never saved to a
+file (it was a scratch experiment, per section 12's `--events a23-only`
+entry) and needs reconstructing and rerunning at 100 m before A25 can be
+trusted at the new range -- separately logged once that run completes.
+The `uavx/logs/stress_test_seed101.json` / `stress_test_4uav_seed101.json`
+pair (paper's fault-recovery numbers, standard all-events config) is also
+stale at 100 m; not rerun tonight, lower priority than the above.
+
+### `a23-only` 300-seed scan, reconstructed and rerun at 100 m (24 Sep 2026)
+
+The scan behind A25's "2/300 race condition, seed 1 clean" finding (section
+12, `--events a23-only` entry) was never saved to a file at 150 m -- it was
+a scratch experiment. Reconstructed from its documented methodology
+(`survey.run(seed, n_uav=4, events="a23-only")` for every seed 1-300,
+internal random PoI layout, not `--scenario` -- matches the original scan
+exactly) and rerun at 100 m. Raw per-seed results saved to
+`uavx/logs/a23_only_seed_scan_4uav_seeds1-300_r100.json` (fields:
+`{link,uav_dropout}_fired`, `{link,uav_dropout}_on_live_chain_at_fire`,
+`dropout_recovered`, `dropout_recovery_s`).
+
+**A25's specific claim holds: seed 1 is still clean on both events.** Both
+`link_degraded` and `uav_dropout` fired, both landed on a relay verifiably
+on the live chain at the fire tick, and the dropout recovered in 5.0 s.
+Seed 1 stays frozen for the demo per A25.
+
+**The aggregate rates are NOT the same shape as at 150 m -- reported here
+so A25 isn't quietly re-read as "unchanged":**
+
+| | 150 m (A25, scratch, not saved) | 100 m (this rerun) |
+|---|---|---|
+| `link_degraded` fired | 300/300 (implied) | **280/300** |
+| `link_degraded` mismatches (target left chain before fire tick) | 2/300 | **1/300** (seed 93) |
+| `uav_dropout` fired | 300/300 | **126/300** |
+| `uav_dropout` mismatches | 0/300 | **0/126** |
+| `uav_dropout` fired AND recovered | 163/300 (54.3%) | **75/126 (59.5%)** |
+| recovery_s (min/median/max) | 0.2 / 7.6 / 19.0 | **0.6 / 5.2 / 13.4** |
+
+The race-condition mismatch rate did not get worse (1/300 vs 2/300, both
+still only on the degrade event, never the dropout). But the dropout
+event's **fire rate collapsed** from 300/300 to 126/300 -- at the smaller
+100 m radius, on the internal random layout (PoIs drawn uniformly between
+`R_COMM_M` and `ARENA_HALF_EXTENT_M` = 100-500 m, a wider relative spread
+than 150-500 m was), far more seeds now end their 75%-mark report streak
+with the surveyor already disconnected, so the dropout has no report to
+select a target from and is logged as "could not fire" instead. This is
+specific to the **internal random layout** the test suite and this scan
+use -- it does not affect the fixed `--scenario` demo run, which is
+unaffected by the random-layout PoI spread and reported all 6 PoIs on
+seed 1. Not investigated further tonight; flagged here in case the paper
+or a judge's question ever cites the old 150 m aggregate numbers, which no
+longer hold.

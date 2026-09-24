@@ -1,77 +1,77 @@
 {
-  "_note": "Drafted by B2, 23 Sep 2026, per A23; coordinates regenerated 24 Sep 2026. Base at (0,0). Edge rule verified against uavx/link.py: is_up() is a plain distance<=R_COMM_M cutoff (link.py:58). BUT relay placement is uavx/assign.py GreedyChainAssigner, which spaces relays r_comm*LINK_SOFT_BAND_FRAC = 120 m apart, so the relays a PoI actually needs is NOT the edge-rule count. relays_used_actual is the number of relays on the path the real assigner builds with the surveyor parked at that PoI and all 3 relays available (N_UAV=4) -- measured, not hand-calculated. Every PoI is also reachable with only 2 relays (the fleet after the 75% dropout), and every path has PDR 1.0. B2's v1 draft classified by the edge rule only; see uavx/RULES_NOTES.md section 12.",
+  "_note": "Drafted by B2, 23 Sep 2026, per A23; coordinates regenerated 24 Sep 2026 for R_COMM_M=150 (edge-rule vs relay-placement fix), then regenerated a second time 24 Sep 2026 for the R_COMM_M=150->100 ruling (relay spacing = r_comm*LINK_SOFT_BAND_FRAC dropped from 120 m to 80 m). Base at (0,0). Edge rule verified against uavx/link.py: is_up() is a plain distance<=R_COMM_M cutoff (link.py:58). relays_used_actual is the number of relays on the path the real assigner builds with the surveyor parked at that PoI and all 3 relays available (N_UAV=4) -- measured (uavx/assign.py GreedyChainAssigner, single-PoI-at-a-time, matching how survey.py actually calls assign() every tick against the surveyor's one current position), not hand-calculated. Every PoI is also reachable with only 2 of the 3 relays, checked against all three 2-relay subsets individually (the fleet after the 75% dropout event, whichever relay is the one dropped), and every path has PDR 1.0. See uavx/RULES_NOTES.md section 12.",
   "base_pos": [
     0.0,
     0.0
   ],
-  "r_comm_m": 150.0,
+  "r_comm_m": 100.0,
   "pois": [
     {
       "id": "poi_1",
       "priority": 3,
       "pos": [
-        100.0,
+        65.0,
         0.0
       ],
       "relays_used_actual": 0,
-      "distance_from_base_m": 100.0
+      "distance_from_base_m": 65.0
     },
     {
       "id": "poi_2",
       "priority": 1,
       "pos": [
         0.0,
-        110.0
+        72.0
       ],
       "relays_used_actual": 0,
-      "distance_from_base_m": 110.0
+      "distance_from_base_m": 72.0
     },
     {
       "id": "poi_6",
       "priority": 1,
       "pos": [
-        -160.0,
-        -128.0
+        -96.8736,
+        -96.8736
       ],
       "relays_used_actual": 1,
-      "distance_from_base_m": 204.9
+      "distance_from_base_m": 137.0
     },
     {
       "id": "poi_4",
       "priority": 1,
       "pos": [
         0.0,
-        230.0
+        153.0
       ],
       "relays_used_actual": 1,
-      "distance_from_base_m": 230.0
+      "distance_from_base_m": 153.0
     },
     {
       "id": "poi_3",
       "priority": 3,
       "pos": [
-        280.0,
+        187.0,
         0.0
       ],
       "relays_used_actual": 2,
-      "distance_from_base_m": 280.0
+      "distance_from_base_m": 187.0
     },
     {
       "id": "poi_5",
       "priority": 3,
       "pos": [
         0.0,
-        -340.0
+        -227.0
       ],
       "relays_used_actual": 2,
-      "distance_from_base_m": 340.0
+      "distance_from_base_m": 227.0
     }
   ],
   "reachability_spread_check": {
     "zero_relay_count": 2,
     "one_relay_count": 2,
     "two_relay_count": 2,
-    "basis": "relays_used_actual (real GreedyChainAssigner output), not the edge rule"
+    "basis": "relays_used_actual (real GreedyChainAssigner output, single-PoI-at-a-time), not the edge rule"
   },
   "priority_check": {
     "priority_3_count": 3,
