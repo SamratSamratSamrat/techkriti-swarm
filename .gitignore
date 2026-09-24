@@ -1,0 +1,25 @@
+# Python bytecode / caches
+__pycache__/
+*.pyc
+*.pyo
+
+# Virtual environments
+venv/
+.venv/
+
+# OS junk
+.DS_Store
+
+# Secrets -- never commit
+.env
+.env.*
+*.pem
+*.key
+credentials*
+*credentials*.json
+secrets*
+
+# DO NOT add *.json, *.log, *.txt, *.BIN, logs/ or similar here.
+# Evidence files are required for reproducibility (a graded criterion):
+# uavx/logs/**, sitl_run_3uav/** (incl. .BIN dataflash logs), *_summary.txt,
+# statustext.log, commander_stdout.log, ports.txt, params*.txt, *.json logs.

@@ -1,0 +1,8 @@
+{
+  "method": "geometric_bound_not_direct_measurement",
+  "nominal_neighbor_separation_m_at_120deg_R5.0": 8.6603,
+  "num_ticks_used": 60,
+  "worst_case_minimum_inter_drone_separation_bound_m": 5.8433,
+  "worst_case_tick": 0.0,
+  "note": "Lower bound only: nominal_neighbor_distance - err_i - err_j per tick per neighbor pair, minimized over all ticks and pairs. NOT a direct SERIAL1/lat-lon measurement -- sprint2.jsonl only logs per-drone radial error (err_m) to ring center, not raw position, so exact pairwise distance cannot be computed from this log (per user-approved approach)."
+}

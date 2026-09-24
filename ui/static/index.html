@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Swarm UI (read-only)</title>
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #111417;
+    color: #e6e6e6;
+    font-family: ui-monospace, "SF Mono", Consolas, "DejaVu Sans Mono", monospace;
+  }
+  header {
+    padding: 8px 14px;
+    background: #191d22;
+    border-bottom: 1px solid #2c333b;
+  }
+  header h1 {
+    font-size: 15px;
+    margin: 0;
+    font-weight: normal;
+    letter-spacing: 0.02em;
+  }
+  header .subtitle {
+    font-size: 11px;
+    color: #8a929b;
+  }
+  #status-bar {
+    padding: 5px 14px;
+    font-size: 12px;
+    font-weight: bold;
+  }
+  #status-bar.live { color: #7ee787; background: #0f1c12; }
+  #status-bar.stale { color: #ffcc66; background: #2b2000; }
+  #panels {
+    padding: 10px 14px;
+  }
+  .panel {
+    border: 1px solid #2c333b;
+    margin-bottom: 14px;
+    background: #14181c;
+  }
+  .panel h2 {
+    font-size: 12px;
+    margin: 0;
+    padding: 6px 10px;
+    background: #1c2128;
+    color: #9cc4e4;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    border-bottom: 1px solid #2c333b;
+  }
+  .panel-body {
+    padding: 8px;
+  }
+  .panel-error {
+    color: #ff6b6b;
+    white-space: pre-wrap;
+    font-size: 12px;
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>Swarm UI</h1>
+  <div class="subtitle">read-only telemetry viewer -- never sends a command, never arms, never touches vehicle state</div>
+</header>
+<div id="status-bar">connecting&hellip;</div>
+<div id="panels"></div>
+
+<script src="/static/app.js"></script>
+<script src="/static/panels/relay_map.js"></script>
+<script>
+  UI.start(__POLL_MS__);
+</script>
+</body>
+</html>

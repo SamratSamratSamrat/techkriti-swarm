@@ -1,0 +1,10 @@
+=== PRE-FLIGHT: independent MAV_GCS_SYSID gate + Module 1 heartbeat check ===
+sysid  port   heartbeat   MAV_GCS_SYSID   
+1      5760   OK          CONFIRMED       
+2      5770   OK          CONFIRMED       
+3      5780   OK          CONFIRMED       
+4      5790   OK          CONFIRMED       
+
+Module 1 heartbeat: 4/4 OK
+A7/A14 MAV_GCS_SYSID=250: 4/4 CONFIRMED
+GATE RESULT: Module 1 heartbeat gate PASSED (4/4 OK).

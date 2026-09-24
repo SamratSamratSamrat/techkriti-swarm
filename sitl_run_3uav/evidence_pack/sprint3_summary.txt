@@ -1,0 +1,75 @@
+B3 Sprint 2 Verification — Run Summary
+============================================================
+Start: 2026-09-23 16:18:09 UTC
+End:   2026-09-23 16:21:20 UTC
+Total: 191.1 s
+
+[   0.00s] === B3 Sprint 2 Verification Rerun — commander START ===
+[   0.00s] connecting tcp:127.0.0.1:5760 ...
+[   0.03s]   ok: sysid 1 on tcp:127.0.0.1:5760
+[   0.03s] connecting tcp:127.0.0.1:5770 ...
+[   0.03s]   ok: sysid 2 on tcp:127.0.0.1:5770
+[   0.03s] connecting tcp:127.0.0.1:5780 ...
+[   0.04s]   ok: sysid 3 on tcp:127.0.0.1:5780
+[   0.04s] connecting tcp:127.0.0.1:5790 ...
+[   0.04s]   ok: sysid 4 on tcp:127.0.0.1:5790
+[   0.04s] ==== PHASE: GCS hello (repeated heartbeat + stream request to all) ====
+[   8.04s] ==== PHASE: A7 — set SYSID_MYGCS=250 on all 4, best-effort readback ====
+[  16.85s] PARAM sysid=1 SYSID_MYGCS = TIMEOUT   [MISMATCH]
+[  16.85s]   A7 sysid 1: SET_NO_ECHO
+[  25.66s] PARAM sysid=2 SYSID_MYGCS = TIMEOUT   [MISMATCH]
+[  25.66s]   A7 sysid 2: SET_NO_ECHO
+[  34.46s] PARAM sysid=3 SYSID_MYGCS = TIMEOUT   [MISMATCH]
+[  34.46s]   A7 sysid 3: SET_NO_ECHO
+[  43.26s] PARAM sysid=4 SYSID_MYGCS = TIMEOUT   [MISMATCH]
+[  43.26s]   A7 sysid 4: SET_NO_ECHO
+[  43.26s] A7 summary: 0/4 vehicles echoed SYSID_MYGCS=250. Continuing regardless — SET was sent to all 4.
+[  43.26s] ==== PHASE: setup — GCS heartbeat, stream request, GPS wait ====
+[  43.26s] warm-up 10s...
+[  53.26s] ==== PHASE: GUIDED for all ====
+[  53.47s] ==== PHASE: EKF settle 20s ====
+[  74.28s] ==== PHASE: arm all 4 ====
+[  74.76s] ==== PHASE: takeoff — target sysid 4 to 15.0m, interceptors [1, 2, 3] to 10.0m ====
+[  82.51s]   sysid 1 at 8.7 m (target 10.0m)
+[  82.53s]   sysid 2 at 8.7 m (target 10.0m)
+[  82.55s]   sysid 3 at 8.7 m (target 10.0m)
+[  84.48s]   sysid 4 at 13.7 m (target 15.0m)
+[  84.48s] all vehicles at altitude — starting formation phases
+[  84.48s] ==== PHASE: Module 1 status table (CP1) ====
+[  84.48s] MOD1 1      True    4      -35.3632620   149.1652372    9.99m     6
+[  84.49s] MOD1 2      True    4      -35.3632620   149.1652372    9.99m     6
+[  84.49s] MOD1 3      True    4      -35.3632620   149.1652372    9.99m     6
+[  84.49s] MOD1 4      True    4      -35.3632620   149.1652372    13.68m    6
+[  84.49s] ==== PHASE: converge (target HOVERING; A8: tol=3.0m, consec=3, timeout=90s) ====
+[  86.70s]   CONVERGED sysid 1 in 2.2s (e=1.49m)
+[  86.70s]   CONVERGED sysid 2 in 2.2s (e=1.27m)
+[  86.70s]   CONVERGED sysid 3 in 2.2s (e=1.32m)
+[  86.70s] convergence phase complete: 3/3 interceptors converged
+[  86.70s] ==== PHASE: hold (60s, target holding spawn per A6) ====
+[ 146.76s] ==== PHASE: RTL all ====
+[ 146.76s]   target sysid 4 RTL sent
+[ 146.76s] ==== PHASE: wait for disarm on all interceptors ====
+[ 162.08s]   sysid 1 still waiting for disarm (15s, alt=10.001)
+[ 177.08s]   sysid 1 still waiting for disarm (30s, alt=10.001)
+[ 190.94s]   sysid 1 DISARMED
+[ 191.03s]   sysid 2 DISARMED
+[ 191.13s]   sysid 3 DISARMED
+[ 191.14s] run complete — every interceptor accounted for
+
+
+========== CP4 SUMMARY ==========
+Per-drone ring error over hold + convergence time:
+sysid  conv_time                max_err_m   mean_err_m  samples   
+1      2.20s                    1.493       0.045       60        
+2      2.20s                    1.262       0.059       60        
+3      2.20s                    1.324       0.057       60        
+
+takeoff -> ring formed: 11.94 s
+takeoff -> end of hold: 72.00 s
+
+
+========== INTER-DRONE SEPARATION (NEW, geometric bound) ==========
+Nominal neighbor separation (120deg spacing, R=5.0m): 8.6603 m
+Worst-case minimum inter-drone separation bound observed: 5.8433 m (at tick=0.0)
+Method: geometric bound = nominal_neighbor_distance - err_i - err_j, minimized over all ticks/pairs.
+This is a LOWER BOUND, not a direct measurement -- sprint2.jsonl logs only per-drone radial error to ring center, not raw lat/lon, so exact pairwise separation is not directly computable from this log.

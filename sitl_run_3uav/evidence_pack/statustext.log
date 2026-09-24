@@ -1,0 +1,18 @@
+[   8.35s] sysid=1 sev=6 : EKF3 IMU0 is using GPS
+[   8.35s] sysid=1 sev=6 : EKF3 IMU1 is using GPS
+[  17.15s] sysid=2 sev=6 : EKF3 IMU0 is using GPS
+[  17.15s] sysid=2 sev=6 : EKF3 IMU1 is using GPS
+[  25.97s] sysid=3 sev=6 : EKF3 IMU0 is using GPS
+[  25.97s] sysid=3 sev=6 : EKF3 IMU1 is using GPS
+[  34.77s] sysid=4 sev=6 : EKF3 IMU0 is using GPS
+[  34.77s] sysid=4 sev=6 : EKF3 IMU1 is using GPS
+[  74.33s] sysid=1 sev=6 : Arming motors
+[  74.67s] sysid=2 sev=6 : Arming motors
+[  74.71s] sysid=3 sev=6 : Arming motors
+[  74.76s] sysid=4 sev=6 : Arming motors
+[ 187.38s] sysid=1 sev=6 : SIM Hit ground at 0.500010 m/s
+[ 190.33s] sysid=1 sev=6 : Disarming motors
+[ 191.02s] sysid=2 sev=6 : SIM Hit ground at 0.501199 m/s
+[ 191.03s] sysid=2 sev=6 : Disarming motors
+[ 191.13s] sysid=3 sev=6 : SIM Hit ground at 0.499695 m/s
+[ 191.13s] sysid=3 sev=6 : Disarming motors

@@ -1,0 +1,3 @@
+# score/ — mission scoring harness. Standard library only.
+# No third-party packages required (json, sqlite3, hashlib, statistics, math,
+# argparse, csv, dataclasses are all in the Python 3.12 standard library).

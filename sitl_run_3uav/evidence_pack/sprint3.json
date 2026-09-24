@@ -1,0 +1,2128 @@
+{
+  "run_start_utc": "2026-09-23T16:18:09Z",
+  "run_end_utc": "2026-09-23T16:21:20Z",
+  "total_s": 191.14,
+  "takeoff_to_ring_formed_s": 11.94,
+  "per_drone": {
+    "1": {
+      "conv_s": "2.20s",
+      "max_err": 1.493,
+      "mean_err": 0.045,
+      "samples": 60
+    },
+    "2": {
+      "conv_s": "2.20s",
+      "max_err": 1.262,
+      "mean_err": 0.059,
+      "samples": 60
+    },
+    "3": {
+      "conv_s": "2.20s",
+      "max_err": 1.324,
+      "mean_err": 0.057,
+      "samples": 60
+    }
+  },
+  "hold_series": [
+    {
+      "t_s": 0.0,
+      "phase": "hold",
+      "target": {
+        "sysid": 4,
+        "lat": -35.363262,
+        "lon": 149.1652371,
+        "rel_alt": 14.985,
+        "vx_ms": 0.0,
+        "vy_ms": 0.0,
+        "fresh": true
+      },
+      "interceptors": [
+        {
+          "sysid": 1,
+          "status": "active",
+          "err_m": 1.493,
+          "converged": true
+        },
+        {
+          "sysid": 2,
+          "status": "active",
+          "err_m": 1.262,
+          "converged": true
+        },
+        {
+          "sysid": 3,
+          "status": "active",
+          "err_m": 1.324,
+          "converged": true
+        }
+      ],
+      "ring_err_mean_m": 1.36,
+      "active_of_5": 3
+    },
+    {
+      "t_s": 1.001,
+      "phase": "hold",
+      "target": {
+        "sysid": 4,
+        "lat": -35.363262,
+        "lon": 149.165237,
+        "rel_alt": 14.953,
+        "vx_ms": 0.0,
+        "vy_ms": 0.0,
+        "fresh": true
+      },
+      "interceptors": [
+        {
+          "sysid": 1,
+          "status": "active",
+          "err_m": 0.027,
+          "converged": true
+        },
+        {
+          "sysid": 2,
+          "status": "active",
+          "err_m": 0.03,
+          "converged": true
+        },
+        {
+          "sysid": 3,
+          "status": "active",
+          "err_m": 0.044,
+          "converged": true
+        }
+      ],
+      "ring_err_mean_m": 0.034,
+      "active_of_5": 3
+    },
+    {
+      "t_s": 2.001,
+      "phase": "hold",
+      "target": {
+        "sysid": 4,
+        "lat": -35.3632619,
+        "lon": 149.1652369,
+        "rel_alt": 14.973,
+        "vx_ms": 0.0,
+        "vy_ms": 0.0,
+        "fresh": true
+      },
+      "interceptors": [
+        {
+          "sysid": 1,
+          "status": "active",
+          "err_m": 0.065,
+          "converged": true
+        },
+        {
+          "sysid": 2,
+          "status": "active",
+          "err_m": 0.028,
+          "converged": true
+        },
+        {
+          "sysid": 3,
+          "status": "active",
+          "err_m": 0.034,
+          "converged": true
+        }
+      ],
+      "ring_err_mean_m": 0.042,
+      "active_of_5": 3
+    },
+    {
+      "t_s": 3.002,
+      "phase": "hold",
+      "target": {
+        "sysid": 4,
+        "lat": -35.3632618,
+        "lon": 149.1652366,
+        "rel_alt": 14.984,
+        "vx_ms": 0.0,
+        "vy_ms": 0.01,
+        "fresh": true
+      },
+      "interceptors": [
+        {
+          "sysid": 1,
+          "status": "active",
+          "err_m": 0.11,
+          "converged": true
+        },
+        {
+          "sysid": 2,
+          "status": "active",
+          "err_m": 0.033,
+          "converged": true
+        },
+        {
+          "sysid": 3,
+          "status": "active",
+          "err_m": 0.037,
+          "converged": true
+        }
+      ],
+      "ring_err_mean_m": 0.06,
+      "active_of_5": 3
+    },
+    {
+      "t_s": 4.392,
+      "phase": "hold",
+      "target": {
+        "sysid": 4,
+        "lat": -35.3632616,
+        "lon": 149.1652365,
+        "rel_alt": 14.988,
+        "vx_ms": 0.0,
+        "vy_ms": 0.0,
+        "fresh": true
+      },
+      "interceptors": [
+        {
+          "sysid": 1,
+          "status": "active",
+          "err_m": 0.087,
+          "converged": true
+        },
+        {
+          "sysid": 2,
+          "status": "active",
+          "err_m": 0.059,
+          "converged": true
+        },
+        {
+          "sysid": 3,
+          "status": "active",
+          "err_m": 0.045,
+          "converged": true
+        }
+      ],
+      "ring_err_mean_m": 0.064,
+      "active_of_5": 3
+    },
+    {
+      "t_s": 5.393,
+      "phase": "hold",
+      "target": {
+        "sysid": 4,
+        "lat": -35.3632615,
+        "lon": 149.1652363,
+        "rel_alt": 14.992,
+        "vx_ms": -0.01,
+        "vy_ms": 0.01,
+        "fresh": true
+      },
+      "interceptors": [
+        {
+          "sysid": 1,
+          "status": "active",
+          "err_m": 0.076,
+          "converged": true
+        },
+        {
+          "sysid": 2,
+          "status": "active",
+          "err_m": 0.074,
+          "converged": true
+        },
+        {
+          "sysid": 3,
+          "status": "active",
+          "err_m": 0.047,
+          "converged": true
+        }
+      ],
+      "ring_err_mean_m": 0.066,
+      "active_of_5": 3
+    },
+    {
+      "t_s": 6.393,
+      "phase": "hold",
+      "target": {
+        "sysid": 4,
+        "lat": -35.3632614,
+        "lon": 149.1652361,
+        "rel_alt": 14.995,
+        "vx_ms": 0.0,
+        "vy_ms": 0.01,
+        "fresh": true
+      },
+      "interceptors": [
+        {
+          "sysid": 1,
+          "status": "active",
+          "err_m": 0.054,
+          "converged": true
+        },
+        {
+          "sysid": 2,
+          "status": "active",
+          "err_m": 0.057,
+          "converged": true
+        },
+        {
+          "sysid": 3,
+          "status": "active",
+          "err_m": 0.039,
+          "converged": true
+        }
+      ],
+      "ring_err_mean_m": 0.05,
+      "active_of_5": 3
+    },
+    {
+      "t_s": 7.394,
+      "phase": "hold",
+      "target": {
+        "sysid": 4,
+        "lat": -35.3632613,
+        "lon": 149.165236,
+        "rel_alt": 14.997,
+        "vx_ms": 0.0,
+        "vy_ms": 0.0,
+        "fresh": true
+      },
+      "interceptors": [
+        {
+          "sysid": 1,
+          "status": "active",
+          "err_m": 0.033,
+          "converged": true
+        },
+        {
+          "sysid": 2,
+          "status": "active",
+          "err_m": 0.048,
+          "converged": true
+        },
+        {
+          "sysid": 3,
+          "status": "active",
+          "err_m": 0.038,
+          "converged": true
+        }
+      ],
+      "ring_err_mean_m": 0.04,
+      "active_of_5": 3
+    },
+    {
+      "t_s": 8.394,
+      "phase": "hold",
+      "target": {
+        "sysid": 4,
+        "lat": -35.3632612,
+        "lon": 149.1652358,
+        "rel_alt": 14.998,
+        "vx_ms": -0.01,
+        "vy_ms": 0.01,
+        "fresh": true
+      },
+      "interceptors": [
+        {
+          "sysid": 1,
+          "status": "active",
+          "err_m": 0.021,
+          "converged": true
+        },
+        {
+          "sysid": 2,
+          "status": "active",
+          "err_m": 0.055,
+          "converged": true
+        },
+        {
+          "sysid": 3,
+          "status": "active",
+          "err_m": 0.05,
+          "converged": true
+        }
+      ],
+      "ring_err_mean_m": 0.042,
+      "active_of_5": 3
+    },
+    {
+      "t_s": 9.395,
+      "phase": "hold",
+      "target": {
+        "sysid": 4,
+        "lat": -35.3632611,
+        "lon": 149.1652357,
+        "rel_alt": 14.999,
+        "vx_ms": 0.0,
+        "vy_ms": 0.0,
+        "fresh": true
+      },
+      "interceptors": [
+        {
+          "sysid": 1,
+          "status": "active",
+          "err_m": 0.013,
+          "converged": true
+        },
+        {
+          "sysid": 2,
+          "status": "active",
+          "err_m": 0.046,
+          "converged": true
+        },
+        {
+          "sysid": 3,
+          "status": "active",
+          "err_m": 0.05,
+          "converged": true
+        }
+      ],
+      "ring_err_mean_m": 0.036,
+      "active_of_5": 3
+    },
+    {
+      "t_s": 10.396,
+      "phase": "hold",
+      "target": {
+        "sysid": 4,
+        "lat": -35.3632611,
+        "lon": 149.1652356,
+        "rel_alt": 15.001,
+        "vx_ms": -0.01,
+        "vy_ms": 0.0,
+        "fresh": true
+      },
+      "interceptors": [
+        {
+          "sysid": 1,
+          "status": "active",
+          "err_m": 0.022,
+          "converged": true
+        },
+        {
+          "sysid": 2,
+          "status": "active",
+          "err_m": 0.046,
+          "converged": true
+        },
+        {
+          "sysid": 3,
+          "status": "active",
+          "err_m": 0.039,
+          "converged": true
+        }
+      ],
+      "ring_err_mean_m": 0.036,
+      "active_of_5": 3
+    },
+    {
+      "t_s": 11.396,
+      "phase": "hold",
+      "target": {
+        "sysid": 4,
+        "lat": -35.363261,
+        "lon": 149.1652354,
+        "rel_alt": 15.001,
+        "vx_ms": 0.0,
+        "vy_ms": 0.0,
+        "fresh": true
+      },
+      "interceptors": [
+        {
+          "sysid": 1,
+          "status": "active",
+          "err_m": 0.021,
+          "converged": true
+        },
+        {
+          "sysid": 2,
+          "status": "active",
+          "err_m": 0.055,
+          "converged": true
+        },
+        {
+          "sysid": 3,
+          "status": "active",
+          "err_m": 0.052,
+          "converged": true
+        }
+      ],
+      "ring_err_mean_m": 0.043,
+      "active_of_5": 3
+    },
+    {
+      "t_s": 12.397,
+      "phase": "hold",
+      "target": {
+        "sysid": 4,
+        "lat": -35.3632609,
+        "lon": 149.1652353,
+        "rel_alt": 15.001,
+        "vx_ms": -0.01,
+        "vy_ms": 0.0,
+        "fresh": true
+      },
+      "interceptors": [
+        {
+          "sysid": 1,
+          "status": "active",
+          "err_m": 0.021,
+          "converged": true
+        },
+        {
+          "sysid": 2,
+          "status": "active",
+          "err_m": 0.055,
+          "converged": true
+        },
+        {
+          "sysid": 3,
+          "status": "active",
+          "err_m": 0.05,
+          "converged": true
+        }
+      ],
+      "ring_err_mean_m": 0.042,
+      "active_of_5": 3
+    },
+    {
+      "t_s": 13.398,
+      "phase": "hold",
+      "target": {
+        "sysid": 4,
+        "lat": -35.3632608,
+        "lon": 149.1652352,
+        "rel_alt": 15.001,
+        "vx_ms": 0.0,
+        "vy_ms": 0.01,
+        "fresh": true
+      },
+      "interceptors": [
+        {
+          "sysid": 1,
+          "status": "active",
+          "err_m": 0.021,
+          "converged": true
+        },
+        {
+          "sysid": 2,
+          "status": "active",
+          "err_m": 0.055,
+          "converged": true
+        },
+        {
+          "sysid": 3,
+          "status": "active",
+          "err_m": 0.05,
+          "converged": true
+        }
+      ],
+      "ring_err_mean_m": 0.042,
+      "active_of_5": 3
+    },
+    {
+      "t_s": 14.398,
+      "phase": "hold",
+      "target": {
+        "sysid": 4,
+        "lat": -35.3632608,
+        "lon": 149.1652351,
+        "rel_alt": 15.0,
+        "vx_ms": 0.0,
+        "vy_ms": 0.0,
+        "fresh": true
+      },
+      "interceptors": [
+        {
+          "sysid": 1,
+          "status": "active",
+          "err_m": 0.021,
+          "converged": true
+        },
+        {
+          "sysid": 2,
+          "status": "active",
+          "err_m": 0.046,
+          "converged": true
+        },
+        {
+          "sysid": 3,
+          "status": "active",
+          "err_m": 0.039,
+          "converged": true
+        }
+      ],
+      "ring_err_mean_m": 0.035,
+      "active_of_5": 3
+    },
+    {
+      "t_s": 15.399,
+      "phase": "hold",
+      "target": {
+        "sysid": 4,
+        "lat": -35.3632607,
+        "lon": 149.165235,
+        "rel_alt": 15.001,
+        "vx_ms": 0.0,
+        "vy_ms": 0.0,
+        "fresh": true
+      },
+      "interceptors": [
+        {
+          "sysid": 1,
+          "status": "active",
+          "err_m": 0.021,
+          "converged": true
+        },
+        {
+          "sysid": 2,
+          "status": "active",
+          "err_m": 0.046,
+          "converged": true
+        },
+        {
+          "sysid": 3,
+          "status": "active",
+          "err_m": 0.039,
+          "converged": true
+        }
+      ],
+      "ring_err_mean_m": 0.035,
+      "active_of_5": 3
+    },
+    {
+      "t_s": 16.399,
+      "phase": "hold",
+      "target": {
+        "sysid": 4,
+        "lat": -35.3632606,
+        "lon": 149.1652349,
+        "rel_alt": 15.002,
+        "vx_ms": 0.0,
+        "vy_ms": 0.0,
+        "fresh": true
+      },
+      "interceptors": [
+        {
+          "sysid": 1,
+          "status": "active",
+          "err_m": 0.009,
+          "converged": true
+        },
+        {
+          "sysid": 2,
+          "status": "active",
+          "err_m": 0.046,
+          "converged": true
+        },
+        {
+          "sysid": 3,
+          "status": "active",
+          "err_m": 0.039,
+          "converged": true
+        }
+      ],
+      "ring_err_mean_m": 0.031,
+      "active_of_5": 3
+    },
+    {
+      "t_s": 17.4,
+      "phase": "hold",
+      "target": {
+        "sysid": 4,
+        "lat": -35.3632605,
+        "lon": 149.1652348,
+        "rel_alt": 15.002,
+        "vx_ms": 0.0,
+        "vy_ms": 0.0,
+        "fresh": true
+      },
+      "interceptors": [
+        {
+          "sysid": 1,
+          "status": "active",
+          "err_m": 0.009,
+          "converged": true
+        },
+        {
+          "sysid": 2,
+          "status": "active",
+          "err_m": 0.046,
+          "converged": true
+        },
+        {
+          "sysid": 3,
+          "status": "active",
+          "err_m": 0.042,
+          "converged": true
+        }
+      ],
+      "ring_err_mean_m": 0.032,
+      "active_of_5": 3
+    },
+    {
+      "t_s": 18.4,
+      "phase": "hold",
+      "target": {
+        "sysid": 4,
+        "lat": -35.3632605,
+        "lon": 149.1652347,
+        "rel_alt": 15.001,
+        "vx_ms": 0.0,
+        "vy_ms": 0.0,
+        "fresh": true
+      },
+      "interceptors": [
+        {
+          "sysid": 1,
+          "status": "active",
+          "err_m": 0.009,
+          "converged": true
+        },
+        {
+          "sysid": 2,
+          "status": "active",
+          "err_m": 0.046,
+          "converged": true
+        },
+        {
+          "sysid": 3,
+          "status": "active",
+          "err_m": 0.042,
+          "converged": true
+        }
+      ],
+      "ring_err_mean_m": 0.032,
+      "active_of_5": 3
+    },
+    {
+      "t_s": 19.401,
+      "phase": "hold",
+      "target": {
+        "sysid": 4,
+        "lat": -35.3632604,
+        "lon": 149.1652347,
+        "rel_alt": 15.001,
+        "vx_ms": 0.0,
+        "vy_ms": 0.0,
+        "fresh": true
+      },
+      "interceptors": [
+        {
+          "sysid": 1,
+          "status": "active",
+          "err_m": 0.009,
+          "converged": true
+        },
+        {
+          "sysid": 2,
+          "status": "active",
+          "err_m": 0.028,
+          "converged": true
+        },
+        {
+          "sysid": 3,
+          "status": "active",
+          "err_m": 0.039,
+          "converged": true
+        }
+      ],
+      "ring_err_mean_m": 0.025,
+      "active_of_5": 3
+    },
+    {
+      "t_s": 20.402,
+      "phase": "hold",
+      "target": {
+        "sysid": 4,
+        "lat": -35.3632604,
+        "lon": 149.1652346,
+        "rel_alt": 15.0,
+        "vx_ms": 0.0,
+        "vy_ms": 0.0,
+        "fresh": true
+      },
+      "interceptors": [
+        {
+          "sysid": 1,
+          "status": "active",
+          "err_m": 0.021,
+          "converged": true
+        },
+        {
+          "sysid": 2,
+          "status": "active",
+          "err_m": 0.037,
+          "converged": true
+        },
+        {
+          "sysid": 3,
+          "status": "active",
+          "err_m": 0.032,
+          "converged": true
+        }
+      ],
+      "ring_err_mean_m": 0.03,
+      "active_of_5": 3
+    },
+    {
+      "t_s": 21.402,
+      "phase": "hold",
+      "target": {
+        "sysid": 4,
+        "lat": -35.3632603,
+        "lon": 149.1652345,
+        "rel_alt": 15.0,
+        "vx_ms": 0.0,
+        "vy_ms": 0.0,
+        "fresh": true
+      },
+      "interceptors": [
+        {
+          "sysid": 1,
+          "status": "active",
+          "err_m": 0.021,
+          "converged": true
+        },
+        {
+          "sysid": 2,
+          "status": "active",
+          "err_m": 0.037,
+          "converged": true
+        },
+        {
+          "sysid": 3,
+          "status": "active",
+          "err_m": 0.032,
+          "converged": true
+        }
+      ],
+      "ring_err_mean_m": 0.03,
+      "active_of_5": 3
+    },
+    {
+      "t_s": 22.403,
+      "phase": "hold",
+      "target": {
+        "sysid": 4,
+        "lat": -35.3632602,
+        "lon": 149.1652344,
+        "rel_alt": 15.0,
+        "vx_ms": -0.01,
+        "vy_ms": 0.0,
+        "fresh": true
+      },
+      "interceptors": [
+        {
+          "sysid": 1,
+          "status": "active",
+          "err_m": 0.009,
+          "converged": true
+        },
+        {
+          "sysid": 2,
+          "status": "active",
+          "err_m": 0.037,
+          "converged": true
+        },
+        {
+          "sysid": 3,
+          "status": "active",
+          "err_m": 0.028,
+          "converged": true
+        }
+      ],
+      "ring_err_mean_m": 0.025,
+      "active_of_5": 3
+    },
+    {
+      "t_s": 23.404,
+      "phase": "hold",
+      "target": {
+        "sysid": 4,
+        "lat": -35.3632601,
+        "lon": 149.1652343,
+        "rel_alt": 15.0,
+        "vx_ms": 0.0,
+        "vy_ms": 0.0,
+        "fresh": true
+      },
+      "interceptors": [
+        {
+          "sysid": 1,
+          "status": "active",
+          "err_m": 0.009,
+          "converged": true
+        },
+        {
+          "sysid": 2,
+          "status": "active",
+          "err_m": 0.037,
+          "converged": true
+        },
+        {
+          "sysid": 3,
+          "status": "active",
+          "err_m": 0.039,
+          "converged": true
+        }
+      ],
+      "ring_err_mean_m": 0.028,
+      "active_of_5": 3
+    },
+    {
+      "t_s": 24.404,
+      "phase": "hold",
+      "target": {
+        "sysid": 4,
+        "lat": -35.3632601,
+        "lon": 149.1652342,
+        "rel_alt": 15.0,
+        "vx_ms": 0.0,
+        "vy_ms": 0.0,
+        "fresh": true
+      },
+      "interceptors": [
+        {
+          "sysid": 1,
+          "status": "active",
+          "err_m": 0.021,
+          "converged": true
+        },
+        {
+          "sysid": 2,
+          "status": "active",
+          "err_m": 0.037,
+          "converged": true
+        },
+        {
+          "sysid": 3,
+          "status": "active",
+          "err_m": 0.032,
+          "converged": true
+        }
+      ],
+      "ring_err_mean_m": 0.03,
+      "active_of_5": 3
+    },
+    {
+      "t_s": 25.405,
+      "phase": "hold",
+      "target": {
+        "sysid": 4,
+        "lat": -35.36326,
+        "lon": 149.1652341,
+        "rel_alt": 15.0,
+        "vx_ms": 0.0,
+        "vy_ms": 0.0,
+        "fresh": true
+      },
+      "interceptors": [
+        {
+          "sysid": 1,
+          "status": "active",
+          "err_m": 0.009,
+          "converged": true
+        },
+        {
+          "sysid": 2,
+          "status": "active",
+          "err_m": 0.037,
+          "converged": true
+        },
+        {
+          "sysid": 3,
+          "status": "active",
+          "err_m": 0.032,
+          "converged": true
+        }
+      ],
+      "ring_err_mean_m": 0.026,
+      "active_of_5": 3
+    },
+    {
+      "t_s": 26.406,
+      "phase": "hold",
+      "target": {
+        "sysid": 4,
+        "lat": -35.3632599,
+        "lon": 149.1652341,
+        "rel_alt": 15.0,
+        "vx_ms": 0.0,
+        "vy_ms": 0.0,
+        "fresh": true
+      },
+      "interceptors": [
+        {
+          "sysid": 1,
+          "status": "active",
+          "err_m": 0.009,
+          "converged": true
+        },
+        {
+          "sysid": 2,
+          "status": "active",
+          "err_m": 0.037,
+          "converged": true
+        },
+        {
+          "sysid": 3,
+          "status": "active",
+          "err_m": 0.039,
+          "converged": true
+        }
+      ],
+      "ring_err_mean_m": 0.028,
+      "active_of_5": 3
+    },
+    {
+      "t_s": 27.407,
+      "phase": "hold",
+      "target": {
+        "sysid": 4,
+        "lat": -35.3632599,
+        "lon": 149.165234,
+        "rel_alt": 14.998,
+        "vx_ms": 0.0,
+        "vy_ms": 0.0,
+        "fresh": true
+      },
+      "interceptors": [
+        {
+          "sysid": 1,
+          "status": "active",
+          "err_m": 0.009,
+          "converged": true
+        },
+        {
+          "sysid": 2,
+          "status": "active",
+          "err_m": 0.037,
+          "converged": true
+        },
+        {
+          "sysid": 3,
+          "status": "active",
+          "err_m": 0.028,
+          "converged": true
+        }
+      ],
+      "ring_err_mean_m": 0.025,
+      "active_of_5": 3
+    },
+    {
+      "t_s": 28.408,
+      "phase": "hold",
+      "target": {
+        "sysid": 4,
+        "lat": -35.3632598,
+        "lon": 149.1652339,
+        "rel_alt": 14.998,
+        "vx_ms": 0.0,
+        "vy_ms": 0.0,
+        "fresh": true
+      },
+      "interceptors": [
+        {
+          "sysid": 1,
+          "status": "active",
+          "err_m": 0.009,
+          "converged": true
+        },
+        {
+          "sysid": 2,
+          "status": "active",
+          "err_m": 0.037,
+          "converged": true
+        },
+        {
+          "sysid": 3,
+          "status": "active",
+          "err_m": 0.039,
+          "converged": true
+        }
+      ],
+      "ring_err_mean_m": 0.028,
+      "active_of_5": 3
+    },
+    {
+      "t_s": 29.408,
+      "phase": "hold",
+      "target": {
+        "sysid": 4,
+        "lat": -35.3632598,
+        "lon": 149.1652338,
+        "rel_alt": 14.999,
+        "vx_ms": 0.0,
+        "vy_ms": 0.0,
+        "fresh": true
+      },
+      "interceptors": [
+        {
+          "sysid": 1,
+          "status": "active",
+          "err_m": 0.021,
+          "converged": true
+        },
+        {
+          "sysid": 2,
+          "status": "active",
+          "err_m": 0.037,
+          "converged": true
+        },
+        {
+          "sysid": 3,
+          "status": "active",
+          "err_m": 0.028,
+          "converged": true
+        }
+      ],
+      "ring_err_mean_m": 0.029,
+      "active_of_5": 3
+    },
+    {
+      "t_s": 30.409,
+      "phase": "hold",
+      "target": {
+        "sysid": 4,
+        "lat": -35.3632597,
+        "lon": 149.1652337,
+        "rel_alt": 15.0,
+        "vx_ms": 0.0,
+        "vy_ms": 0.0,
+        "fresh": true
+      },
+      "interceptors": [
+        {
+          "sysid": 1,
+          "status": "active",
+          "err_m": 0.009,
+          "converged": true
+        },
+        {
+          "sysid": 2,
+          "status": "active",
+          "err_m": 0.037,
+          "converged": true
+        },
+        {
+          "sysid": 3,
+          "status": "active",
+          "err_m": 0.032,
+          "converged": true
+        }
+      ],
+      "ring_err_mean_m": 0.026,
+      "active_of_5": 3
+    },
+    {
+      "t_s": 31.409,
+      "phase": "hold",
+      "target": {
+        "sysid": 4,
+        "lat": -35.3632596,
+        "lon": 149.1652336,
+        "rel_alt": 15.0,
+        "vx_ms": 0.0,
+        "vy_ms": 0.0,
+        "fresh": true
+      },
+      "interceptors": [
+        {
+          "sysid": 1,
+          "status": "active",
+          "err_m": 0.009,
+          "converged": true
+        },
+        {
+          "sysid": 2,
+          "status": "active",
+          "err_m": 0.037,
+          "converged": true
+        },
+        {
+          "sysid": 3,
+          "status": "active",
+          "err_m": 0.032,
+          "converged": true
+        }
+      ],
+      "ring_err_mean_m": 0.026,
+      "active_of_5": 3
+    },
+    {
+      "t_s": 32.41,
+      "phase": "hold",
+      "target": {
+        "sysid": 4,
+        "lat": -35.3632596,
+        "lon": 149.1652335,
+        "rel_alt": 14.999,
+        "vx_ms": 0.0,
+        "vy_ms": 0.0,
+        "fresh": true
+      },
+      "interceptors": [
+        {
+          "sysid": 1,
+          "status": "active",
+          "err_m": 0.022,
+          "converged": true
+        },
+        {
+          "sysid": 2,
+          "status": "active",
+          "err_m": 0.037,
+          "converged": true
+        },
+        {
+          "sysid": 3,
+          "status": "active",
+          "err_m": 0.032,
+          "converged": true
+        }
+      ],
+      "ring_err_mean_m": 0.031,
+      "active_of_5": 3
+    },
+    {
+      "t_s": 33.41,
+      "phase": "hold",
+      "target": {
+        "sysid": 4,
+        "lat": -35.3632595,
+        "lon": 149.1652335,
+        "rel_alt": 14.998,
+        "vx_ms": 0.0,
+        "vy_ms": 0.0,
+        "fresh": true
+      },
+      "interceptors": [
+        {
+          "sysid": 1,
+          "status": "active",
+          "err_m": 0.009,
+          "converged": true
+        },
+        {
+          "sysid": 2,
+          "status": "active",
+          "err_m": 0.028,
+          "converged": true
+        },
+        {
+          "sysid": 3,
+          "status": "active",
+          "err_m": 0.039,
+          "converged": true
+        }
+      ],
+      "ring_err_mean_m": 0.025,
+      "active_of_5": 3
+    },
+    {
+      "t_s": 34.411,
+      "phase": "hold",
+      "target": {
+        "sysid": 4,
+        "lat": -35.3632594,
+        "lon": 149.1652333,
+        "rel_alt": 14.999,
+        "vx_ms": 0.0,
+        "vy_ms": 0.0,
+        "fresh": true
+      },
+      "interceptors": [
+        {
+          "sysid": 1,
+          "status": "active",
+          "err_m": 0.013,
+          "converged": true
+        },
+        {
+          "sysid": 2,
+          "status": "active",
+          "err_m": 0.037,
+          "converged": true
+        },
+        {
+          "sysid": 3,
+          "status": "active",
+          "err_m": 0.042,
+          "converged": true
+        }
+      ],
+      "ring_err_mean_m": 0.031,
+      "active_of_5": 3
+    },
+    {
+      "t_s": 35.411,
+      "phase": "hold",
+      "target": {
+        "sysid": 4,
+        "lat": -35.3632594,
+        "lon": 149.1652333,
+        "rel_alt": 15.0,
+        "vx_ms": 0.0,
+        "vy_ms": 0.0,
+        "fresh": true
+      },
+      "interceptors": [
+        {
+          "sysid": 1,
+          "status": "active",
+          "err_m": 0.009,
+          "converged": true
+        },
+        {
+          "sysid": 2,
+          "status": "active",
+          "err_m": 0.028,
+          "converged": true
+        },
+        {
+          "sysid": 3,
+          "status": "active",
+          "err_m": 0.028,
+          "converged": true
+        }
+      ],
+      "ring_err_mean_m": 0.022,
+      "active_of_5": 3
+    },
+    {
+      "t_s": 36.412,
+      "phase": "hold",
+      "target": {
+        "sysid": 4,
+        "lat": -35.3632593,
+        "lon": 149.1652332,
+        "rel_alt": 15.0,
+        "vx_ms": 0.0,
+        "vy_ms": 0.01,
+        "fresh": true
+      },
+      "interceptors": [
+        {
+          "sysid": 1,
+          "status": "active",
+          "err_m": 0.013,
+          "converged": true
+        },
+        {
+          "sysid": 2,
+          "status": "active",
+          "err_m": 0.037,
+          "converged": true
+        },
+        {
+          "sysid": 3,
+          "status": "active",
+          "err_m": 0.042,
+          "converged": true
+        }
+      ],
+      "ring_err_mean_m": 0.031,
+      "active_of_5": 3
+    },
+    {
+      "t_s": 37.446,
+      "phase": "hold",
+      "target": {
+        "sysid": 4,
+        "lat": -35.3632593,
+        "lon": 149.1652332,
+        "rel_alt": 15.0,
+        "vx_ms": 0.0,
+        "vy_ms": 0.0,
+        "fresh": true
+      },
+      "interceptors": [
+        {
+          "sysid": 1,
+          "status": "active",
+          "err_m": 0.013,
+          "converged": true
+        },
+        {
+          "sysid": 2,
+          "status": "active",
+          "err_m": 0.037,
+          "converged": true
+        },
+        {
+          "sysid": 3,
+          "status": "active",
+          "err_m": 0.032,
+          "converged": true
+        }
+      ],
+      "ring_err_mean_m": 0.027,
+      "active_of_5": 3
+    },
+    {
+      "t_s": 38.447,
+      "phase": "hold",
+      "target": {
+        "sysid": 4,
+        "lat": -35.3632593,
+        "lon": 149.1652332,
+        "rel_alt": 15.0,
+        "vx_ms": 0.0,
+        "vy_ms": 0.0,
+        "fresh": true
+      },
+      "interceptors": [
+        {
+          "sysid": 1,
+          "status": "active",
+          "err_m": 0.021,
+          "converged": true
+        },
+        {
+          "sysid": 2,
+          "status": "active",
+          "err_m": 0.028,
+          "converged": true
+        },
+        {
+          "sysid": 3,
+          "status": "active",
+          "err_m": 0.028,
+          "converged": true
+        }
+      ],
+      "ring_err_mean_m": 0.026,
+      "active_of_5": 3
+    },
+    {
+      "t_s": 39.447,
+      "phase": "hold",
+      "target": {
+        "sysid": 4,
+        "lat": -35.3632592,
+        "lon": 149.1652331,
+        "rel_alt": 14.999,
+        "vx_ms": 0.0,
+        "vy_ms": 0.0,
+        "fresh": true
+      },
+      "interceptors": [
+        {
+          "sysid": 1,
+          "status": "active",
+          "err_m": 0.009,
+          "converged": true
+        },
+        {
+          "sysid": 2,
+          "status": "active",
+          "err_m": 0.037,
+          "converged": true
+        },
+        {
+          "sysid": 3,
+          "status": "active",
+          "err_m": 0.028,
+          "converged": true
+        }
+      ],
+      "ring_err_mean_m": 0.025,
+      "active_of_5": 3
+    },
+    {
+      "t_s": 40.447,
+      "phase": "hold",
+      "target": {
+        "sysid": 4,
+        "lat": -35.3632591,
+        "lon": 149.165233,
+        "rel_alt": 14.998,
+        "vx_ms": 0.0,
+        "vy_ms": 0.0,
+        "fresh": true
+      },
+      "interceptors": [
+        {
+          "sysid": 1,
+          "status": "active",
+          "err_m": 0.009,
+          "converged": true
+        },
+        {
+          "sysid": 2,
+          "status": "active",
+          "err_m": 0.037,
+          "converged": true
+        },
+        {
+          "sysid": 3,
+          "status": "active",
+          "err_m": 0.039,
+          "converged": true
+        }
+      ],
+      "ring_err_mean_m": 0.028,
+      "active_of_5": 3
+    },
+    {
+      "t_s": 41.448,
+      "phase": "hold",
+      "target": {
+        "sysid": 4,
+        "lat": -35.3632591,
+        "lon": 149.1652329,
+        "rel_alt": 14.999,
+        "vx_ms": 0.0,
+        "vy_ms": 0.0,
+        "fresh": true
+      },
+      "interceptors": [
+        {
+          "sysid": 1,
+          "status": "active",
+          "err_m": 0.021,
+          "converged": true
+        },
+        {
+          "sysid": 2,
+          "status": "active",
+          "err_m": 0.037,
+          "converged": true
+        },
+        {
+          "sysid": 3,
+          "status": "active",
+          "err_m": 0.028,
+          "converged": true
+        }
+      ],
+      "ring_err_mean_m": 0.029,
+      "active_of_5": 3
+    },
+    {
+      "t_s": 42.448,
+      "phase": "hold",
+      "target": {
+        "sysid": 4,
+        "lat": -35.363259,
+        "lon": 149.1652328,
+        "rel_alt": 15.0,
+        "vx_ms": -0.01,
+        "vy_ms": 0.0,
+        "fresh": true
+      },
+      "interceptors": [
+        {
+          "sysid": 1,
+          "status": "active",
+          "err_m": 0.009,
+          "converged": true
+        },
+        {
+          "sysid": 2,
+          "status": "active",
+          "err_m": 0.037,
+          "converged": true
+        },
+        {
+          "sysid": 3,
+          "status": "active",
+          "err_m": 0.032,
+          "converged": true
+        }
+      ],
+      "ring_err_mean_m": 0.026,
+      "active_of_5": 3
+    },
+    {
+      "t_s": 43.449,
+      "phase": "hold",
+      "target": {
+        "sysid": 4,
+        "lat": -35.363259,
+        "lon": 149.1652328,
+        "rel_alt": 15.0,
+        "vx_ms": 0.0,
+        "vy_ms": 0.0,
+        "fresh": true
+      },
+      "interceptors": [
+        {
+          "sysid": 1,
+          "status": "active",
+          "err_m": 0.021,
+          "converged": true
+        },
+        {
+          "sysid": 2,
+          "status": "active",
+          "err_m": 0.028,
+          "converged": true
+        },
+        {
+          "sysid": 3,
+          "status": "active",
+          "err_m": 0.028,
+          "converged": true
+        }
+      ],
+      "ring_err_mean_m": 0.026,
+      "active_of_5": 3
+    },
+    {
+      "t_s": 44.45,
+      "phase": "hold",
+      "target": {
+        "sysid": 4,
+        "lat": -35.3632589,
+        "lon": 149.1652327,
+        "rel_alt": 15.0,
+        "vx_ms": 0.0,
+        "vy_ms": 0.0,
+        "fresh": true
+      },
+      "interceptors": [
+        {
+          "sysid": 1,
+          "status": "active",
+          "err_m": 0.013,
+          "converged": true
+        },
+        {
+          "sysid": 2,
+          "status": "active",
+          "err_m": 0.037,
+          "converged": true
+        },
+        {
+          "sysid": 3,
+          "status": "active",
+          "err_m": 0.032,
+          "converged": true
+        }
+      ],
+      "ring_err_mean_m": 0.027,
+      "active_of_5": 3
+    },
+    {
+      "t_s": 45.45,
+      "phase": "hold",
+      "target": {
+        "sysid": 4,
+        "lat": -35.3632588,
+        "lon": 149.1652326,
+        "rel_alt": 14.999,
+        "vx_ms": 0.0,
+        "vy_ms": 0.0,
+        "fresh": true
+      },
+      "interceptors": [
+        {
+          "sysid": 1,
+          "status": "active",
+          "err_m": 0.013,
+          "converged": true
+        },
+        {
+          "sysid": 2,
+          "status": "active",
+          "err_m": 0.037,
+          "converged": true
+        },
+        {
+          "sysid": 3,
+          "status": "active",
+          "err_m": 0.032,
+          "converged": true
+        }
+      ],
+      "ring_err_mean_m": 0.027,
+      "active_of_5": 3
+    },
+    {
+      "t_s": 46.451,
+      "phase": "hold",
+      "target": {
+        "sysid": 4,
+        "lat": -35.3632587,
+        "lon": 149.1652326,
+        "rel_alt": 14.998,
+        "vx_ms": 0.0,
+        "vy_ms": 0.0,
+        "fresh": true
+      },
+      "interceptors": [
+        {
+          "sysid": 1,
+          "status": "active",
+          "err_m": 0.009,
+          "converged": true
+        },
+        {
+          "sysid": 2,
+          "status": "active",
+          "err_m": 0.028,
+          "converged": true
+        },
+        {
+          "sysid": 3,
+          "status": "active",
+          "err_m": 0.039,
+          "converged": true
+        }
+      ],
+      "ring_err_mean_m": 0.025,
+      "active_of_5": 3
+    },
+    {
+      "t_s": 47.452,
+      "phase": "hold",
+      "target": {
+        "sysid": 4,
+        "lat": -35.3632587,
+        "lon": 149.1652325,
+        "rel_alt": 14.999,
+        "vx_ms": 0.0,
+        "vy_ms": 0.0,
+        "fresh": true
+      },
+      "interceptors": [
+        {
+          "sysid": 1,
+          "status": "active",
+          "err_m": 0.009,
+          "converged": true
+        },
+        {
+          "sysid": 2,
+          "status": "active",
+          "err_m": 0.028,
+          "converged": true
+        },
+        {
+          "sysid": 3,
+          "status": "active",
+          "err_m": 0.028,
+          "converged": true
+        }
+      ],
+      "ring_err_mean_m": 0.022,
+      "active_of_5": 3
+    },
+    {
+      "t_s": 48.452,
+      "phase": "hold",
+      "target": {
+        "sysid": 4,
+        "lat": -35.3632587,
+        "lon": 149.1652324,
+        "rel_alt": 15.0,
+        "vx_ms": 0.0,
+        "vy_ms": 0.0,
+        "fresh": true
+      },
+      "interceptors": [
+        {
+          "sysid": 1,
+          "status": "active",
+          "err_m": 0.021,
+          "converged": true
+        },
+        {
+          "sysid": 2,
+          "status": "active",
+          "err_m": 0.028,
+          "converged": true
+        },
+        {
+          "sysid": 3,
+          "status": "active",
+          "err_m": 0.028,
+          "converged": true
+        }
+      ],
+      "ring_err_mean_m": 0.026,
+      "active_of_5": 3
+    },
+    {
+      "t_s": 49.453,
+      "phase": "hold",
+      "target": {
+        "sysid": 4,
+        "lat": -35.3632586,
+        "lon": 149.1652323,
+        "rel_alt": 15.001,
+        "vx_ms": 0.0,
+        "vy_ms": 0.0,
+        "fresh": true
+      },
+      "interceptors": [
+        {
+          "sysid": 1,
+          "status": "active",
+          "err_m": 0.009,
+          "converged": true
+        },
+        {
+          "sysid": 2,
+          "status": "active",
+          "err_m": 0.028,
+          "converged": true
+        },
+        {
+          "sysid": 3,
+          "status": "active",
+          "err_m": 0.032,
+          "converged": true
+        }
+      ],
+      "ring_err_mean_m": 0.023,
+      "active_of_5": 3
+    },
+    {
+      "t_s": 50.454,
+      "phase": "hold",
+      "target": {
+        "sysid": 4,
+        "lat": -35.3632585,
+        "lon": 149.1652323,
+        "rel_alt": 15.0,
+        "vx_ms": 0.0,
+        "vy_ms": 0.0,
+        "fresh": true
+      },
+      "interceptors": [
+        {
+          "sysid": 1,
+          "status": "active",
+          "err_m": 0.009,
+          "converged": true
+        },
+        {
+          "sysid": 2,
+          "status": "active",
+          "err_m": 0.028,
+          "converged": true
+        },
+        {
+          "sysid": 3,
+          "status": "active",
+          "err_m": 0.039,
+          "converged": true
+        }
+      ],
+      "ring_err_mean_m": 0.025,
+      "active_of_5": 3
+    },
+    {
+      "t_s": 51.454,
+      "phase": "hold",
+      "target": {
+        "sysid": 4,
+        "lat": -35.3632585,
+        "lon": 149.1652322,
+        "rel_alt": 14.999,
+        "vx_ms": 0.0,
+        "vy_ms": 0.0,
+        "fresh": true
+      },
+      "interceptors": [
+        {
+          "sysid": 1,
+          "status": "active",
+          "err_m": 0.022,
+          "converged": true
+        },
+        {
+          "sysid": 2,
+          "status": "active",
+          "err_m": 0.037,
+          "converged": true
+        },
+        {
+          "sysid": 3,
+          "status": "active",
+          "err_m": 0.032,
+          "converged": true
+        }
+      ],
+      "ring_err_mean_m": 0.031,
+      "active_of_5": 3
+    },
+    {
+      "t_s": 52.455,
+      "phase": "hold",
+      "target": {
+        "sysid": 4,
+        "lat": -35.3632584,
+        "lon": 149.1652321,
+        "rel_alt": 14.998,
+        "vx_ms": -0.01,
+        "vy_ms": 0.0,
+        "fresh": true
+      },
+      "interceptors": [
+        {
+          "sysid": 1,
+          "status": "active",
+          "err_m": 0.013,
+          "converged": true
+        },
+        {
+          "sysid": 2,
+          "status": "active",
+          "err_m": 0.037,
+          "converged": true
+        },
+        {
+          "sysid": 3,
+          "status": "active",
+          "err_m": 0.032,
+          "converged": true
+        }
+      ],
+      "ring_err_mean_m": 0.027,
+      "active_of_5": 3
+    },
+    {
+      "t_s": 53.456,
+      "phase": "hold",
+      "target": {
+        "sysid": 4,
+        "lat": -35.3632584,
+        "lon": 149.165232,
+        "rel_alt": 14.999,
+        "vx_ms": 0.0,
+        "vy_ms": 0.0,
+        "fresh": true
+      },
+      "interceptors": [
+        {
+          "sysid": 1,
+          "status": "active",
+          "err_m": 0.022,
+          "converged": true
+        },
+        {
+          "sysid": 2,
+          "status": "active",
+          "err_m": 0.037,
+          "converged": true
+        },
+        {
+          "sysid": 3,
+          "status": "active",
+          "err_m": 0.018,
+          "converged": true
+        }
+      ],
+      "ring_err_mean_m": 0.026,
+      "active_of_5": 3
+    },
+    {
+      "t_s": 54.456,
+      "phase": "hold",
+      "target": {
+        "sysid": 4,
+        "lat": -35.3632583,
+        "lon": 149.1652319,
+        "rel_alt": 15.0,
+        "vx_ms": 0.0,
+        "vy_ms": 0.0,
+        "fresh": true
+      },
+      "interceptors": [
+        {
+          "sysid": 1,
+          "status": "active",
+          "err_m": 0.009,
+          "converged": true
+        },
+        {
+          "sysid": 2,
+          "status": "active",
+          "err_m": 0.037,
+          "converged": true
+        },
+        {
+          "sysid": 3,
+          "status": "active",
+          "err_m": 0.032,
+          "converged": true
+        }
+      ],
+      "ring_err_mean_m": 0.026,
+      "active_of_5": 3
+    },
+    {
+      "t_s": 55.457,
+      "phase": "hold",
+      "target": {
+        "sysid": 4,
+        "lat": -35.3632582,
+        "lon": 149.1652319,
+        "rel_alt": 15.0,
+        "vx_ms": 0.0,
+        "vy_ms": 0.0,
+        "fresh": true
+      },
+      "interceptors": [
+        {
+          "sysid": 1,
+          "status": "active",
+          "err_m": 0.013,
+          "converged": true
+        },
+        {
+          "sysid": 2,
+          "status": "active",
+          "err_m": 0.028,
+          "converged": true
+        },
+        {
+          "sysid": 3,
+          "status": "active",
+          "err_m": 0.039,
+          "converged": true
+        }
+      ],
+      "ring_err_mean_m": 0.027,
+      "active_of_5": 3
+    },
+    {
+      "t_s": 56.457,
+      "phase": "hold",
+      "target": {
+        "sysid": 4,
+        "lat": -35.3632582,
+        "lon": 149.1652318,
+        "rel_alt": 14.999,
+        "vx_ms": 0.0,
+        "vy_ms": 0.0,
+        "fresh": true
+      },
+      "interceptors": [
+        {
+          "sysid": 1,
+          "status": "active",
+          "err_m": 0.009,
+          "converged": true
+        },
+        {
+          "sysid": 2,
+          "status": "active",
+          "err_m": 0.028,
+          "converged": true
+        },
+        {
+          "sysid": 3,
+          "status": "active",
+          "err_m": 0.028,
+          "converged": true
+        }
+      ],
+      "ring_err_mean_m": 0.022,
+      "active_of_5": 3
+    },
+    {
+      "t_s": 57.458,
+      "phase": "hold",
+      "target": {
+        "sysid": 4,
+        "lat": -35.3632581,
+        "lon": 149.1652317,
+        "rel_alt": 14.999,
+        "vx_ms": 0.0,
+        "vy_ms": 0.0,
+        "fresh": true
+      },
+      "interceptors": [
+        {
+          "sysid": 1,
+          "status": "active",
+          "err_m": 0.009,
+          "converged": true
+        },
+        {
+          "sysid": 2,
+          "status": "active",
+          "err_m": 0.037,
+          "converged": true
+        },
+        {
+          "sysid": 3,
+          "status": "active",
+          "err_m": 0.042,
+          "converged": true
+        }
+      ],
+      "ring_err_mean_m": 0.029,
+      "active_of_5": 3
+    },
+    {
+      "t_s": 58.459,
+      "phase": "hold",
+      "target": {
+        "sysid": 4,
+        "lat": -35.3632581,
+        "lon": 149.1652316,
+        "rel_alt": 14.998,
+        "vx_ms": 0.0,
+        "vy_ms": 0.0,
+        "fresh": true
+      },
+      "interceptors": [
+        {
+          "sysid": 1,
+          "status": "active",
+          "err_m": 0.021,
+          "converged": true
+        },
+        {
+          "sysid": 2,
+          "status": "active",
+          "err_m": 0.028,
+          "converged": true
+        },
+        {
+          "sysid": 3,
+          "status": "active",
+          "err_m": 0.028,
+          "converged": true
+        }
+      ],
+      "ring_err_mean_m": 0.026,
+      "active_of_5": 3
+    },
+    {
+      "t_s": 59.459,
+      "phase": "hold",
+      "target": {
+        "sysid": 4,
+        "lat": -35.3632581,
+        "lon": 149.1652315,
+        "rel_alt": 15.0,
+        "vx_ms": 0.0,
+        "vy_ms": 0.0,
+        "fresh": true
+      },
+      "interceptors": [
+        {
+          "sysid": 1,
+          "status": "active",
+          "err_m": 0.021,
+          "converged": true
+        },
+        {
+          "sysid": 2,
+          "status": "active",
+          "err_m": 0.028,
+          "converged": true
+        },
+        {
+          "sysid": 3,
+          "status": "active",
+          "err_m": 0.028,
+          "converged": true
+        }
+      ],
+      "ring_err_mean_m": 0.026,
+      "active_of_5": 3
+    }
+  ]
+}
