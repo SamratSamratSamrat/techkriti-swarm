@@ -28,8 +28,23 @@
   const COLOR_RELAY = "#79c0ff";
   const COLOR_IDLE = "#6e7681"; // neutral grey -- idle/standby, NOT a fault
 
-  const SPEEDS = [0.5, 1, 2, 4];
+  // 10x/30x/60x added for A26: a 45-minute rulebook mission would take 11
+  // minutes to watch at the old 4x maximum. Above ~10x the timer can't fire
+  // fast enough for one tick per frame, so playback advances several ticks
+  // per frame instead (see schedulePlayback) -- same sim time per real
+  // second, fewer redraws.
+  const SPEEDS = [0.5, 1, 2, 4, 10, 30, 60];
   const MIN_INTERVAL_MS = 20; // floor so a ~0 recorded dt (or a huge speed) can't spin the browser
+
+  // A26 operational-area / PoI-status styling (only used when the run
+  // carries arena + spawn data, i.e. uavx/survey.py's run_dynamic()).
+  // Red PoI dots match the rulebook's own diagram.
+  const COLOR_POI_WAITING = "#f85149";   // spawned, not yet reached -- red, as in the rulebook diagram
+  const COLOR_POI_ACTIVE = "#e3b341";    // surveyor there / report in flight
+  const COLOR_POI_REPORTED = "#3fb950";  // report reached base on time
+  const COLOR_POI_MISSED = "#8a929b";    // reached, but report missed the 10 s deadline
+  const COLOR_ARENA = "#3d4650";
+  const NEW_POI_HIGHLIGHT_S = 15;        // how long a freshly-spawned PoI gets a "NEW" ring
 
   function qualityColor(q) {
     if (typeof q !== "number" || Number.isNaN(q)) return "#666";
@@ -161,6 +176,29 @@
     return out;
   }
 
+  // --- A26 PoI status at replay time t ---
+  // Returns null if the PoI hasn't spawned yet (it isn't drawn at all --
+  // the rulebook says PoIs appear at random times, so showing them early
+  // would misrepresent what the swarm knew). Otherwise one of:
+  //   "waiting"  -- spawned, surveyor not there yet (red, as in the diagram)
+  //   "active"   -- surveyor arrived, report not yet through, deadline open
+  //   "reported" -- report reached base before the 10 s deadline
+  //   "missed"   -- reached, but the deadline passed with no report
+  // Everything comes from recorded timestamps; nothing is re-simulated.
+  function poiStatusAt(poi, visit, t) {
+    if (typeof poi.spawn_t_s === "number" && t < poi.spawn_t_s - 1e-6) return null;
+    if (!visit || t < visit.arrive_t_s - 1e-6) return "waiting";
+    if (typeof visit.reported_t_s === "number" && visit.reported_t_s <= t + 1e-6) return "reported";
+    if (t >= visit.report_deadline_t_s - 1e-6) return "missed";
+    return "active";
+  }
+
+  function fmtClock(s) {
+    const m = Math.floor(s / 60);
+    const ss = Math.floor(s - m * 60);
+    return String(m).padStart(2, "0") + ":" + String(ss).padStart(2, "0");
+  }
+
   // --- Playback state (module-scoped: persists across app.js's poll-driven
   // render() calls, which is what lets play/scrub/speed work independently
   // of the ~500ms poll cadence) ---
@@ -206,9 +244,11 @@
     }
     if (!playing || ticks.length < 2) return;
     const dtS = ticks[1] - ticks[0]; // recorded tick spacing, straight from the data -- no hardcoded rate
-    const intervalMs = Math.max(MIN_INTERVAL_MS, (dtS * 1000) / speed);
+    const tickMs = (dtS * 1000) / speed;
+    const intervalMs = Math.max(MIN_INTERVAL_MS, tickMs);
+    const step = Math.max(1, Math.round(intervalMs / tickMs)); // >1 only at high speeds
     playbackTimer = setInterval(() => {
-      currentTickIndex += 1;
+      currentTickIndex += step;
       if (currentTickIndex >= ticks.length) {
         // Stop at the last recorded tick rather than looping -- this is a
         // replay of a finished (or in-progress) run, not a looping demo.
@@ -292,6 +332,12 @@
     controls.appendChild(speedSelect);
     rootEl.appendChild(controls);
 
+    const missionBar = document.createElement("div");
+    missionBar.style.fontSize = "12px";
+    missionBar.style.fontFamily = "ui-monospace, monospace";
+    missionBar.style.marginBottom = "6px";
+    rootEl.appendChild(missionBar);
+
     const svgContainer = document.createElement("div");
     rootEl.appendChild(svgContainer);
 
@@ -304,7 +350,7 @@
     const legend = document.createElement("div");
     rootEl.appendChild(legend);
 
-    return { root: rootEl, notes, playBtn, slider, readout, speedSelect, svgContainer, banner, eventLog, legend };
+    return { root: rootEl, notes, playBtn, slider, readout, speedSelect, missionBar, svgContainer, banner, eventLog, legend };
   }
 
   function updateNotes(state) {
@@ -355,13 +401,6 @@
     placedLabels = [];
     canvasW = project.width;
 
-    // --- PoI markers (small, unobtrusive, drawn first so the fleet sits on top) ---
-    for (const poi of pois) {
-      const [x, y] = project(poi.x_m, poi.y_m);
-      svg.appendChild(svgEl("rect", { x: x - 2.5, y: y - 2.5, width: 5, height: 5, fill: "#555f6b", stroke: "#8a929b", "stroke-width": 0.5 }));
-      svg.appendChild(labelEl(x + 5, y - 4, "poi" + poi.id, { fill: "#8a929b", size: 9 }));
-    }
-
     // --- positions lookup, for resolving chain nodes ---
     const positionsByUav = new Map();
     let basePos = null;
@@ -371,6 +410,92 @@
       } else {
         positionsByUav.set(p.uav, [p.x_m, p.y_m]);
       }
+    }
+
+    const arena = state.arena_available ? state.arena : null;
+    const dynamicPois = pois.some((p) => typeof p.spawn_t_s === "number");
+
+    // --- A26: operational area, 75 m gap, relay reach (drawn first, underneath everything) ---
+    if (arena && typeof arena.half_extent_m === "number") {
+      const h = arena.half_extent_m;
+      const [x0, y0] = project(-h, h);
+      const [x1, y1] = project(h, -h);
+      const r = Math.min(x1 - x0, y1 - y0) * 0.06; // rounded corners, like the rulebook diagram
+      svg.appendChild(svgEl("rect", { x: x0, y: y0, width: x1 - x0, height: y1 - y0, rx: r, ry: r, fill: "#11161c", stroke: COLOR_ARENA, "stroke-width": 2 }));
+      // Title sits just ABOVE the box -- inside it, it collided with PoIs spawned near the top edge.
+      svg.appendChild(textEl((x0 + x1) / 2, y0 - 7, "Operational area  " + (2 * h) + " m x " + (2 * h) + " m", { fill: "#8a929b", size: 12, anchor: "middle" }));
+
+      if (basePos && typeof arena.max_chain_reach_m === "number") {
+        // Farthest a full-fleet chain can ever reach -- anything outside
+        // this dashed circle cannot be reported, whatever the relays do.
+        const [bx, by] = project(basePos[0], basePos[1]);
+        const [rx] = project(basePos[0] + arena.max_chain_reach_m, basePos[1]);
+        const rpx = rx - bx;
+        svg.appendChild(svgEl("circle", { cx: bx, cy: by, r: rpx, fill: "#3fb950", "fill-opacity": 0.05, stroke: "#3fb950", "stroke-opacity": 0.55, "stroke-width": 1.2, "stroke-dasharray": "6 5" }));
+        svg.appendChild(textEl(bx + rpx * 0.72, by - rpx * 0.72, "max relay reach " + arena.max_chain_reach_m + " m", { fill: "#3fb950", size: 10 }));
+      }
+
+      if (basePos && typeof arena.base_offset_m === "number") {
+        // Dimension line base -> arena edge, like the rulebook's "75m" arrow.
+        const [bx, by] = project(basePos[0], basePos[1]);
+        const [ex] = project(-h, basePos[1]);
+        const ay = by + 18;
+        svg.appendChild(svgEl("line", { x1: bx, y1: ay, x2: ex, y2: ay, stroke: "#58a6ff", "stroke-width": 1.2 }));
+        svg.appendChild(svgEl("path", { d: `M ${bx + 5} ${ay - 3} L ${bx} ${ay} L ${bx + 5} ${ay + 3}`, fill: "none", stroke: "#58a6ff", "stroke-width": 1.2 }));
+        svg.appendChild(svgEl("path", { d: `M ${ex - 5} ${ay - 3} L ${ex} ${ay} L ${ex - 5} ${ay + 3}`, fill: "none", stroke: "#58a6ff", "stroke-width": 1.2 }));
+        svg.appendChild(textEl((bx + ex) / 2, ay + 13, arena.base_offset_m + " m", { fill: "#58a6ff", size: 11, anchor: "middle" }));
+      }
+    }
+
+    // --- PoI markers (drawn before the fleet so drones sit on top) ---
+    const visitByPoi = new Map();
+    if (state.visits_available) for (const v of state.visits) visitByPoi.set(v.poi, v);
+    const poiCounts = { spawned: 0, waiting: 0, active: 0, reported: 0, missed: 0 };
+    for (const poi of pois) {
+      const [x, y] = project(poi.x_m, poi.y_m);
+      if (!dynamicPois || t === null) {
+        // Static run: unchanged styling.
+        svg.appendChild(svgEl("rect", { x: x - 2.5, y: y - 2.5, width: 5, height: 5, fill: "#555f6b", stroke: "#8a929b", "stroke-width": 0.5 }));
+        svg.appendChild(labelEl(x + 5, y - 4, "poi" + poi.id, { fill: "#8a929b", size: 9 }));
+        continue;
+      }
+      const status = poiStatusAt(poi, visitByPoi.get(poi.id), t);
+      if (status === null) continue; // not spawned yet -- invisible, the swarm doesn't know it exists
+      poiCounts.spawned += 1;
+      poiCounts[status] += 1;
+      const pr = typeof poi.priority === "number" ? " P" + poi.priority.toFixed(0) : "";
+      if (status === "waiting") {
+        svg.appendChild(svgEl("circle", { cx: x, cy: y, r: 7, fill: COLOR_POI_WAITING, stroke: "#1a1f24", "stroke-width": 1.5 }));
+      } else if (status === "active") {
+        svg.appendChild(svgEl("circle", { cx: x, cy: y, r: 7, fill: COLOR_POI_WAITING, stroke: COLOR_POI_ACTIVE, "stroke-width": 3 }));
+      } else if (status === "reported") {
+        svg.appendChild(svgEl("circle", { cx: x, cy: y, r: 7, fill: COLOR_POI_REPORTED, stroke: "#1a1f24", "stroke-width": 1.5 }));
+        svg.appendChild(svgEl("path", { d: `M ${x - 3.5} ${y} L ${x - 1} ${y + 3} L ${x + 4} ${y - 3}`, fill: "none", stroke: "#0b0e11", "stroke-width": 2 }));
+      } else {
+        svg.appendChild(svgEl("circle", { cx: x, cy: y, r: 7, fill: "none", stroke: COLOR_POI_MISSED, "stroke-width": 2 }));
+        svg.appendChild(svgEl("line", { x1: x - 3.5, y1: y - 3.5, x2: x + 3.5, y2: y + 3.5, stroke: COLOR_POI_MISSED, "stroke-width": 1.5 }));
+        svg.appendChild(svgEl("line", { x1: x - 3.5, y1: y + 3.5, x2: x + 3.5, y2: y - 3.5, stroke: COLOR_POI_MISSED, "stroke-width": 1.5 }));
+      }
+      const fresh = t - poi.spawn_t_s < NEW_POI_HIGHLIGHT_S;
+      if (fresh && status === "waiting") {
+        svg.appendChild(svgEl("circle", { cx: x, cy: y, r: 13, fill: "none", stroke: COLOR_POI_WAITING, "stroke-width": 1.5, "stroke-dasharray": "3 3" }));
+      }
+      const labelColor = status === "reported" ? COLOR_POI_REPORTED : status === "missed" ? COLOR_POI_MISSED : COLOR_POI_WAITING;
+      const suffix = fresh && status === "waiting" ? "  NEW" : status === "missed" ? "  missed" : status === "reported" ? "  reported" : "";
+      svg.appendChild(labelEl(x + 10, y + 4, "PoI " + poi.id + pr + suffix, { fill: labelColor, size: 10 }));
+    }
+
+    // --- A26 mission bar: clock + PoI tally (only for dynamic-spawn runs) ---
+    if (dynamicPois && t !== null) {
+      const total = arena && typeof arena.mission_duration_s === "number" ? arena.mission_duration_s : null;
+      dom.missionBar.innerHTML =
+        '<span style="color:#cfd6dd">mission clock ' + fmtClock(t) + (total ? " / " + fmtClock(total) : "") + '</span>&nbsp;&nbsp;|&nbsp;&nbsp;' +
+        '<span style="color:#cfd6dd">PoIs spawned ' + poiCounts.spawned + "/" + pois.length + '</span>&nbsp;&nbsp;' +
+        '<span style="color:' + COLOR_POI_REPORTED + '">reported ' + poiCounts.reported + '</span>&nbsp;&nbsp;' +
+        '<span style="color:' + COLOR_POI_MISSED + '">missed ' + poiCounts.missed + '</span>&nbsp;&nbsp;' +
+        '<span style="color:' + COLOR_POI_WAITING + '">waiting ' + (poiCounts.waiting + poiCounts.active) + '</span>';
+    } else {
+      dom.missionBar.innerHTML = "";
     }
 
     // Figure out the surveyor's uav id (if we can), used both to draw it
@@ -399,9 +524,14 @@
         const [bx, by] = project(b[0], b[1]);
         const color = qualityColor(q);
         svg.appendChild(svgEl("line", { x1: ax, y1: ay, x2: bx, y2: by, stroke: color, "stroke-width": 2.5 }));
-        const mx = (ax + bx) / 2, my = (ay + by) / 2;
-        svg.appendChild(svgEl("rect", { x: mx - 14, y: my - 8, width: 28, height: 12, fill: "#0b0e11", opacity: 0.85 }));
-        svg.appendChild(textEl(mx, my + 2, typeof q === "number" ? q.toFixed(2) : "?", { fill: color, size: 10, anchor: "middle" }));
+        // A26: on the full 1000 m arena a hop can be only ~30 px long, and
+        // its PDR label then sits on top of the drone labels. Skip the
+        // number on very short hops -- the line colour still carries it.
+        if (Math.hypot(bx - ax, by - ay) >= 40) {
+          const mx = (ax + bx) / 2, my = (ay + by) / 2;
+          svg.appendChild(svgEl("rect", { x: mx - 14, y: my - 8, width: 28, height: 12, fill: "#0b0e11", opacity: 0.85 }));
+          svg.appendChild(textEl(mx, my + 2, typeof q === "number" ? q.toFixed(2) : "?", { fill: color, size: 10, anchor: "middle" }));
+        }
       }
     }
 
@@ -435,7 +565,14 @@
       const [x, y] = project(p.x_m, p.y_m);
       if (p.role === "base") {
         svg.appendChild(svgEl("rect", { x: x - 6, y: y - 6, width: 12, height: 12, fill: "#58a6ff", stroke: "#e6e6e6", "stroke-width": 1.5 }));
-        svg.appendChild(labelEl(x + 9, y + 4, "BASE", { fill: "#58a6ff", size: 11 }));
+        // A26: the rulebook calls the base the "Operational center".
+        if (arena) {
+          // Below the 75 m arrow: the relays line up level with base, so a
+          // label beside or just above it lands on top of them.
+          svg.appendChild(labelEl(x - 8, y + 48, "Operational center (BASE)", { fill: "#58a6ff", size: 11 }));
+        } else {
+          svg.appendChild(labelEl(x + 9, y + 4, "BASE", { fill: "#58a6ff", size: 11 }));
+        }
       } else if (p.role === "surveyor") {
         svg.appendChild(svgEl("circle", { cx: x, cy: y, r: 7, fill: "#e3b341", stroke: "#e6e6e6", "stroke-width": 1.5 }));
         svg.appendChild(labelEl(x + 10, y + 4, "S" + p.uav + " surveyor", { fill: "#e3b341", size: 11 }));
@@ -546,7 +683,12 @@
       '<span style="color:' + COLOR_IDLE + '">&#9679;</span> relay idle/standby&nbsp;&nbsp;' +
       '<span style="color:' + COLOR_BAD + '">&#10005;</span> relay OFFLINE&nbsp;&nbsp;' +
       '<span style="color:#e3b341">&#9679;</span> surveyor&nbsp;&nbsp;' +
-      '<span style="color:#8a929b">&#9632;</span> PoI';
+      (dynamicPois
+        ? '<br><span style="color:' + COLOR_POI_WAITING + '">&#9679;</span> PoI waiting (appears at its random spawn time)&nbsp;&nbsp;' +
+          '<span style="color:' + COLOR_POI_REPORTED + '">&#9679;</span> reported within 10 s&nbsp;&nbsp;' +
+          '<span style="color:' + COLOR_POI_MISSED + '">&#9675;</span> reached, missed 10 s deadline&nbsp;&nbsp;' +
+          '<span style="color:#3fb950">- - -</span> max relay reach'
+        : '<span style="color:#8a929b">&#9632;</span> PoI');
   }
 
   function render(state, rootEl) {
@@ -562,6 +704,12 @@
     runPoints = [];
     if (state.positions_available) for (const p of state.positions) runPoints.push([p.x_m, p.y_m]);
     if (state.pois_available) for (const p of state.pois) runPoints.push([p.x_m, p.y_m]);
+    // A26: fit the whole operational area, not just where things happened
+    // to go -- otherwise an arena the swarm mostly can't reach gets cropped.
+    if (state.arena_available && typeof state.arena.half_extent_m === "number") {
+      const h = state.arena.half_extent_m;
+      runPoints.push([-h, -h], [h, h]);
+    }
 
     if (!hasInitializedIndex && ticks.length > 0) {
       currentTickIndex = 0; // default: paused at tick 0 on load

@@ -78,11 +78,20 @@
     }
   }
 
+  // A26: the server tags each state with a file version; sending it back
+  // lets the server reply {"unchanged": true} instead of re-sending a
+  // multi-megabyte replay every poll. Panels are only re-rendered when the
+  // file actually changed (their own playback timers keep running).
+  let lastVersion = null;
+
   async function poll() {
     try {
-      const res = await fetch("/api/state", { cache: "no-store" });
+      const url = lastVersion ? "/api/state?v=" + encodeURIComponent(lastVersion) : "/api/state";
+      const res = await fetch(url, { cache: "no-store" });
       const state = await res.json();
       updateStatusBar(state);
+      if (state.unchanged) return;
+      lastVersion = state.version || null;
       renderAll(state);
     } catch (err) {
       const bar = document.getElementById("status-bar");

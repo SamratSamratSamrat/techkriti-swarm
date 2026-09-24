@@ -106,6 +106,50 @@ Each entry:
 | `x_m` | number | metres, same frame as `positions[].x_m` | yes | entry is dropped |
 | `y_m` | number | metres, same frame | yes | entry is dropped |
 
+#### Optional per-PoI fields (A26, dynamic-spawn runs only)
+
+| field | type | units | if absent |
+|---|---|---|---|
+| `spawn_t_s` | number | seconds, same clock as `positions[].t_s` | PoI is static: drawn from t=0 as a small grey square, exactly as before |
+| `priority` | number | -- | no `P<n>` tag on the label (only passed through alongside `spawn_t_s`) |
+
+When `spawn_t_s` is present the PoI is **not drawn at all before it
+spawns** (the swarm doesn't know it exists yet), then as a red dot, and
+its colour afterwards comes from `visits` below.
+
+### `visits` (array) — OPTIONAL (A26)
+
+Only passed through when entries carry `report_deadline_t_s` (i.e. from
+`uavx/survey.py::run_dynamic()`). Lets the panel colour a PoI at any replay
+tick without knowing the 10 s rule itself:
+
+| field | type | meaning |
+|---|---|---|
+| `poi` | number | PoI id |
+| `arrive_t_s` | number | surveyor reached it |
+| `reported_t_s` | number or null | report reached base (null = never) |
+| `report_deadline_t_s` | number | `arrive_t_s` + 10 s; past this with no report = **missed** |
+
+PoI state at tick t: not spawned -> hidden; spawned, not reached ->
+**waiting** (red); reached, deadline open -> **active** (red, yellow ring);
+reported by t -> **reported** (green, tick); deadline passed -> **missed**
+(hollow grey, X). **If absent:** `visits_available: false`, spawned PoIs
+stay red "waiting".
+
+### `arena` — OPTIONAL (A26), read from `telemetry.conditions`
+
+Present only when `conditions.arena_half_extent_m` exists:
+
+| field | from `conditions.` | drawn as |
+|---|---|---|
+| `half_extent_m` | `arena_half_extent_m` | rounded operational-area box, `2*h` x `2*h` m, centred on the origin |
+| `base_offset_m` | `base_offset_m` | "75 m" dimension arrow from base to the arena edge |
+| `max_chain_reach_m` | `max_chain_reach_m` | dashed circle around base: anything outside can never be reported |
+| `mission_duration_s` | `mission_duration_s` | the "/ 45:00" in the mission clock |
+
+**If absent** (every static run): `arena_available: false`, no box, no
+arrow, no circle, base labelled plain "BASE" -- identical to before A26.
+
 ## `/api/state` response shape
 
 What `ui/server.py` actually sends the browser (the extracted state, plus
@@ -138,6 +182,13 @@ series are available — a freshness indicator for the status bar ("how far
 has this file's recording gotten"), unrelated to which tick the panel
 happens to have scrubbed to right now (that's client-side-only state inside
 `relay_map.js`, never sent to or read from the server).
+
+`version` / `unchanged` (A26): `ui/server.py` tags each full state with
+`version` (the telemetry file's mtime+size). The browser sends it back as
+`/api/state?v=<version>`; if the file hasn't changed the server replies
+`{"unchanged": true, "version": ..., "stale": false, "error": null,
+"t_s": ...}` instead of the full payload, and `app.js` skips re-rendering.
+A 45-min run's state is ~7 MB -- without this it was re-sent every poll.
 
 `stale` / `error` are added by `ui/server.py`, not `ui/adapters.py`:
 `stale: true` means the most recent read of the telemetry file failed

@@ -22,6 +22,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
 import os
 import shutil
 
@@ -31,6 +32,8 @@ from uavx.survey import _relay_ids_on_chain
 
 LOG_DIR = os.path.join(os.path.dirname(__file__), "logs")
 A23_EVENTS = ("link_degraded", "uav_dropout")
+DYNAMIC_SCENARIO = "dynamic_a26"          # conditions.scenario written by survey.run_dynamic()
+SCENARIO_OUT = "scenario_config.json"
 
 
 def _sha256(path: str) -> str:
@@ -133,36 +136,70 @@ def build_event_metrics(tel: dict) -> dict:
 
 def build_summary(tel: dict, em: dict, scenario_src: str, scenario_sha: str) -> str:
     c = tel["conditions"]
+    dynamic = c.get("scenario") == DYNAMIC_SCENARIO
     lines = [
-        "UAV-X Stage 1 -- A23 evidence run",
+        "UAV-X Stage 1 -- " + ("A26 rulebook-accurate evidence run" if dynamic else "A23 evidence run"),
         "=" * 60,
-        f"seed/config : n_uav={c['n_uav']}, r_comm_m={c['r_comm_m']}, event_set={c['event_set']}",
-        f"scenario    : {scenario_src} (sha256 {scenario_sha[:16]}...) -> copied to scenario_config.json",
+        f"seed/config : " + (f"seed={c['seed']}, " if "seed" in c else "") + f"n_uav={c['n_uav']}, r_comm_m={c['r_comm_m']}, event_set={c['event_set']}",
+        (f"scenario    : generated in-code from the seed (run_dynamic) -> written to {SCENARIO_OUT} (sha256 {scenario_sha[:16]}...)"
+         if dynamic else f"scenario    : {scenario_src} (sha256 {scenario_sha[:16]}...) -> copied to {SCENARIO_OUT}"),
         f"duration    : {tel['total_s']:.1f} s simulated, tick {config.TICK_S} s",
-        "",
-        "PoIs (from the scenario file)",
     ]
+    if dynamic:
+        base = c["base_pos"]
+        reach = c["max_chain_reach_m"]
+        lines += [
+            f"geometry    : operational area {2 * c['arena_half_extent_m']:.0f} x {2 * c['arena_half_extent_m']:.0f} m, "
+            f"base at ({base[0]:.0f}, {base[1]:.0f}) = {c['base_offset_m']:.0f} m outside it; max relay reach {reach:.0f} m",
+        ]
+    lines += ["", "PoIs (" + ("random position AND spawn time, per the rulebook" if dynamic else "from the scenario file") + ")"]
     for p in tel["pois"]:
-        lines.append(f"  PoI {p['id']}: priority {p['priority']:.0f}, ({p['x_m']:.0f}, {p['y_m']:.0f}) m")
+        extra = ""
+        if dynamic:
+            d = math.dist(c["base_pos"], (p["x_m"], p["y_m"]))
+            extra = f", spawns t={p['spawn_t_s']:.1f}s, {d:.0f} m from base ({'inside' if d <= c['max_chain_reach_m'] else 'OUTSIDE'} relay reach)"
+        lines.append(f"  PoI {p['id']}: priority {p['priority']:.0f}, ({p['x_m']:.0f}, {p['y_m']:.0f}) m{extra}")
     lines += ["", "Timeline"]
     rows: list[tuple[float, str]] = []
+    if dynamic:
+        for sp in tel.get("poi_spawns", []):
+            rows.append((sp["t_s"], f"PoI {sp['poi']} SPAWNS"))
     for v in tel["visits"]:
         rows.append((v["arrive_t_s"], f"surveyor arrives at PoI {v['poi']}"))
         if v["reported_t_s"] is not None:
             rows.append((v["reported_t_s"], f"PoI {v['poi']} report SUCCEEDS, carried by relays {v['carrying_relay_ids']}"))
+        elif v["dwell_end_t_s"] is None:
+            rows.append((v["arrive_t_s"], f"PoI {v['poi']}: mission clock ran out mid-dwell"))
         else:
-            rows.append((v["dwell_end_t_s"], f"PoI {v['poi']} report NOT delivered (timed out)"))
+            when = v.get("report_deadline_t_s", v["dwell_end_t_s"])
+            rows.append((when, f"PoI {v['poi']} report NOT delivered (" + ("10 s deadline missed" if dynamic else "timed out") + ")"))
     for e in tel["events"]:
         extra = f" (selected from PoI {e['poi']}'s report at t={e['report_t_s']:.1f}s)" if "report_t_s" in e else ""
         rows.append((e["t_s"], f"EVENT {e['type']} on relay_{e['uav']}{extra}"))
     prev_path = None
+    n_topology_changes = 0
     for ch in tel["chains"]:
         if ch["path"] != prev_path:
+            n_topology_changes += 1
             path = " -> ".join(str(n) for n in ch["path"]) or "(no chain: surveyor disconnected)"
-            rows.append((ch["t_s"], f"topology: {path}"))
+            if not dynamic:  # a 45-min run changes topology hundreds of times -- counted below instead of listed
+                rows.append((ch["t_s"], f"topology: {path}"))
             prev_path = ch["path"]
     for t, text in sorted(rows, key=lambda r: r[0]):
         lines.append(f"  t={t:7.1f}s  {text}")
+    if dynamic:
+        lines.append(f"  ({n_topology_changes} relay-chain topology changes over the run -- full per-tick chains[] in the run file)")
+        reach = c["max_chain_reach_m"]
+        in_reach = {p["id"] for p in tel["pois"] if math.dist(c["base_pos"], (p["x_m"], p["y_m"])) <= reach}
+        reported = {v["poi"] for v in tel["visits"] if v["reported_t_s"] is not None}
+        lines += [
+            "",
+            "Reachability (A26 -- the physical ceiling on this run)",
+            f"  PoIs inside max relay reach : {len(in_reach)}/{len(tel['pois'])}",
+            f"  PoIs reported within 10 s   : {len(reported)}/{len(tel['pois'])}"
+            + (f"  ({len(reported & in_reach)}/{len(in_reach)} of the reachable ones)" if in_reach else ""),
+            f"  reported PoIs outside reach : {len(reported - in_reach)} (must be 0 -- physics check)",
+        ]
     lines += ["", "Per-event metrics (A23: reported separately, never pooled)"]
     for rec in em["per_event"]:
         lines.append(f"  {rec['event']} on {rec['node']} at t={rec['t_s']:.1f}s")
@@ -183,6 +220,11 @@ def build_summary(tel: dict, em: dict, scenario_src: str, scenario_sha: str) -> 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Build the A23 evidence pack from one survey run (see module docstring).")
     parser.add_argument("--run", default=os.path.join(LOG_DIR, "stage1_run.json"))
+    parser.add_argument(
+        "--out-dir", default=None,
+        help="where to write the pack (default: next to --run). A26 packs go in their own directory so the "
+        "stale static-model pack beside them is kept for comparison, not overwritten.",
+    )
     args = parser.parse_args()
 
     with open(args.run) as f:
@@ -190,15 +232,37 @@ def main() -> None:
     scenario_src = tel["conditions"].get("scenario")
     if not scenario_src or scenario_src == "internal_random":
         raise SystemExit(f"{args.run} was not run from a scenario file (conditions.scenario={scenario_src!r})")
-    out_dir = os.path.dirname(os.path.abspath(args.run))
-    targets = {n: os.path.join(out_dir, n) for n in ("scenario_config.json", "event_metrics.json", "stage1_summary.txt")}
+    out_dir = os.path.abspath(args.out_dir) if args.out_dir else os.path.dirname(os.path.abspath(args.run))
+    os.makedirs(out_dir, exist_ok=True)
+    targets = {n: os.path.join(out_dir, n) for n in (SCENARIO_OUT, "event_metrics.json", "stage1_summary.txt")}
     existing = [p for p in targets.values() if os.path.exists(p)]
     if existing:
         raise SystemExit(f"refusing to overwrite existing evidence files: {existing}")
 
-    shutil.copyfile(scenario_src, targets["scenario_config.json"])
-    sha = _sha256(scenario_src)
-    assert _sha256(targets["scenario_config.json"]) == sha
+    if scenario_src == DYNAMIC_SCENARIO:
+        # A26: no scenario file exists -- run_dynamic() generates the layout
+        # from the seed. Write exactly what it generated (from the run's own
+        # telemetry, nothing retyped) so the pack is still self-describing.
+        c = tel["conditions"]
+        generated = {
+            "_note": "A26: generated by uavx.survey.run_dynamic() from the seed below, not hand-written. "
+                     "Extracted from the run telemetry by uavx/evidence_pack.py.",
+            "seed": c.get("seed"),
+            "base_pos": c["base_pos"],
+            "arena_half_extent_m": c["arena_half_extent_m"],
+            "base_offset_m": c["base_offset_m"],
+            "r_comm_m": c["r_comm_m"],
+            "max_chain_reach_m": c["max_chain_reach_m"],
+            "mission_duration_s": c["mission_duration_s"],
+            "pois": [{k: p[k] for k in ("id", "priority", "x_m", "y_m", "spawn_t_s")} for p in tel["pois"]],
+        }
+        with open(targets[SCENARIO_OUT], "w") as f:
+            json.dump(generated, f, indent=2)
+        sha = _sha256(targets[SCENARIO_OUT])
+    else:
+        shutil.copyfile(scenario_src, targets[SCENARIO_OUT])
+        sha = _sha256(scenario_src)
+        assert _sha256(targets[SCENARIO_OUT]) == sha
 
     em = build_event_metrics(tel)
     em["scenario_sha256"] = sha

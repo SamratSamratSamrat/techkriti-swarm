@@ -1,0 +1,145 @@
+{
+  "source_run": "stage1_run.json",
+  "conditions": {
+    "gps_class": "ideal_sim",
+    "wind": "none",
+    "n_uav": 4,
+    "r_comm_m": 100.0,
+    "event_set": "a23-only",
+    "scenario": "dynamic_a26",
+    "seed": 48,
+    "dynamic_spawn": true,
+    "base_pos": [
+      -575.0,
+      0.0
+    ],
+    "arena_half_extent_m": 500.0,
+    "base_offset_m": 75.0,
+    "max_chain_reach_m": 400.0,
+    "mission_duration_s": 2700.0
+  },
+  "per_event": [
+    {
+      "event": "link_degraded",
+      "fraction_target": 0.4,
+      "node": "relay_2",
+      "t_s": 1981.8000000000002,
+      "selected_from_report": {
+        "poi": 7,
+        "report_t_s": 1981.6000000000001,
+        "carrying_relay_ids": [
+          2,
+          3,
+          4
+        ],
+        "chain_path_at_report_tick": [
+          "base",
+          "relay_2",
+          "relay_3",
+          "relay_4",
+          1
+        ]
+      },
+      "target_in_carrying_relay_ids": true,
+      "target_on_live_chain_at_fire_tick": true,
+      "window_end_t_s": 1996.8000000000002,
+      "recovery_time_s": null,
+      "recovery_time_quality": "not_applicable",
+      "recovery_time_reason": "degradation never breaks connectivity (BFS uses undegraded distances) and never triggers reconfigure(); link_restored is a DEGRADE_DURATION_S timer, not a measured recovery -- uavx/RULES_NOTES.md section 12",
+      "relay_reallocations": 0,
+      "relay_reallocations_quality": "by_construction",
+      "relay_reallocations_basis": "no reconfigure() call is caused by a degradation, so no fault-driven reallocation exists; serves-set changes that happened to fall inside the window are counted separately below and are all routine surveyor_drift",
+      "serves_changes_during_window": 4,
+      "serves_changes_during_window_causes": [
+        "surveyor_drift"
+      ]
+    },
+    {
+      "event": "uav_dropout",
+      "fraction_target": 0.75,
+      "node": "relay_2",
+      "t_s": 2046.6000000000001,
+      "selected_from_report": {
+        "poi": 6,
+        "report_t_s": 2046.4,
+        "carrying_relay_ids": [
+          2
+        ],
+        "chain_path_at_report_tick": [
+          "base",
+          "relay_2",
+          1
+        ]
+      },
+      "target_in_carrying_relay_ids": true,
+      "target_on_live_chain_at_fire_tick": true,
+      "recovery_time_s": 7.999999999999773,
+      "recovery_time_quality": "measured",
+      "recovery_time_reason": null,
+      "restored_t_s": 2054.6,
+      "relay_reallocations": 1,
+      "relay_reallocations_quality": "measured",
+      "relay_reallocations_basis": "assignment rows tagged cause=poi_report_dropout (score/profiles.py)"
+    }
+  ],
+  "fault_notes": [],
+  "run_level": {
+    "packet_delivery_ratio": {
+      "value": 0.6737588652482269,
+      "unit": "ratio",
+      "quality": "measured"
+    },
+    "latency_ms_mean": {
+      "value": 55.96526702962052,
+      "unit": "ms",
+      "quality": "measured"
+    },
+    "latency_ms_p95": {
+      "value": 82.77719565274236,
+      "unit": "ms",
+      "quality": "measured"
+    },
+    "connectivity_downtime_s": {
+      "value": 943.2,
+      "unit": "s",
+      "quality": "approx",
+      "reason": "downtime after each PoI's last sample is not counted (no end timestamp to close the interval)"
+    },
+    "relay_reallocations": {
+      "value": 15,
+      "unit": "count",
+      "quality": "measured"
+    },
+    "relay_reallocations_relay_failure": {
+      "value": 0,
+      "unit": "count",
+      "quality": "measured"
+    },
+    "relay_reallocations_relay_recharge": {
+      "value": 0,
+      "unit": "count",
+      "quality": "measured"
+    },
+    "relay_reallocations_poi_report_dropout": {
+      "value": 1,
+      "unit": "count",
+      "quality": "measured"
+    },
+    "relay_reallocations_surveyor_drift": {
+      "value": 14,
+      "unit": "count",
+      "quality": "measured"
+    },
+    "poi_completion": {
+      "value": 0.55,
+      "unit": "ratio",
+      "quality": "measured"
+    },
+    "priority_weighted_score": {
+      "value": 0.5714285714285714,
+      "unit": "ratio",
+      "quality": "measured"
+    }
+  },
+  "scenario_sha256": "999c626c28312ba1bc5fa618b278da0f07e03a470d6cb17ac359b8a5761cf4f2"
+}

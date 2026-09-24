@@ -18,6 +18,7 @@ import argparse
 import http.server
 import json
 import threading
+import urllib.parse
 from pathlib import Path
 
 from ui import adapters
@@ -41,9 +42,26 @@ class StateStore:
         self.poll_ms = poll_ms
         self._lock = threading.Lock()
         self._last_good: dict | None = None
+        # A26: a 45-minute run is ~15 MB of telemetry / ~7 MB of state. Re-
+        # parsing and re-sending all of it on every 500 ms poll made replay
+        # stutter. The file's mtime is used as a version: unchanged file ->
+        # reuse the parsed state, and if the browser already has this
+        # version, send a tiny {"unchanged": true} instead of the payload.
+        self._cached_version: str | None = None
 
-    def get(self) -> dict:
+    def _file_version(self) -> str:
+        st = Path(self.telemetry_path).stat()
+        return f"{st.st_mtime_ns}-{st.st_size}"
+
+    def get(self, client_version: str | None = None) -> dict:
         try:
+            version = self._file_version()
+            with self._lock:
+                cached = self._last_good if version == self._cached_version else None
+            if cached is not None and client_version == version:
+                return {"unchanged": True, "version": version, "stale": False, "error": None, "t_s": cached.get("t_s")}
+            if cached is not None:
+                return cached
             telemetry = adapters.load_telemetry(self.telemetry_path)
             state = adapters.extract_state(telemetry)
         except Exception as e:  # noqa: BLE001 -- file is external/mutable input; never crash the server on it
@@ -51,12 +69,15 @@ class StateStore:
                 fallback = dict(self._last_good) if self._last_good is not None else adapters.empty_state()
             fallback["stale"] = True
             fallback["error"] = f"{type(e).__name__}: {e}"
+            fallback.pop("version", None)
             return fallback
 
         state["stale"] = False
         state["error"] = None
+        state["version"] = version
         with self._lock:
             self._last_good = state
+            self._cached_version = version
         return state
 
 
@@ -95,8 +116,10 @@ def make_handler(store: StateStore) -> type:
                 self._write(html.encode("utf-8"), 200, "text/html; charset=utf-8")
                 return
 
-            if self.path == "/api/state":
-                self._send_json(store.get())
+            route, _, query = self.path.partition("?")
+            if route == "/api/state":
+                client_version = urllib.parse.parse_qs(query).get("v", [None])[0]
+                self._send_json(store.get(client_version))
                 return
 
             if self.path.startswith("/static/"):

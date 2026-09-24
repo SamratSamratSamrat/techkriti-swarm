@@ -842,6 +842,383 @@ def run(
     return telemetry
 
 
+# ---------------------------------------------------------------------------
+# A26 (24 Sep 2026): rulebook-accurate dynamic-spawn mission model.
+# See uavx/RULES_NOTES.md section 13 for the full ruling this implements:
+# base 75m outside a 1000x1000m arena (config.BASE_OFFSET_M/ARENA_HALF_EXTENT_M),
+# 10 PoIs spawning at random positions AND times over a fixed 45-minute
+# mission (config.N_POI_A26/MISSION_DURATION_S), a 10s hard detect-to-report
+# deadline (config.MAX_DETECT_TO_REPORT_S). Deliberately a SEPARATE function
+# from run() rather than a rewrite of it -- run()'s precomputed-route path is
+# what CP1-CP6's evidence pack was just verified against (R_COMM_M 150->100
+# migration); this shares run()'s helpers but keeps its own tick loop so
+# that already-verified path stays untouched.
+# ---------------------------------------------------------------------------
+
+
+def _dynamic_poi_scenario(rng) -> dict[int, dict]:
+    """A26: PoIs spawn randomly in BOTH position and time, per the
+    rulebook's mission-constraints slide ("Number of POIs - 10. Spawned
+    randomly (position and the time of spawning)"). Position: uniform
+    anywhere in the full ARENA_HALF_EXTENT_M box -- the rulebook's diagram
+    spreads PoIs across the whole 1000x1000m operational area, and most of
+    that box is outside relay range of the settled 4-aircraft fleet by
+    construction (see config.py's BASE_OFFSET_M warning) -- a deliberate
+    ruling (spread across the whole arena, most fail), not an oversight; see
+    uavx/RULES_NOTES.md section 13. Time: uniform across
+    [0, MISSION_DURATION_S) -- the rulebook gives no distribution, this is
+    our call, documented rather than silently assumed."""
+    pois = {}
+    for i in range(config.N_POI_A26):
+        x = rng.uniform(-config.ARENA_HALF_EXTENT_M, config.ARENA_HALF_EXTENT_M)
+        y = rng.uniform(-config.ARENA_HALF_EXTENT_M, config.ARENA_HALF_EXTENT_M)
+        pois[i] = {
+            "pos": (x, y),
+            "priority": rng.choice(config.POI_PRIORITY_LEVELS),
+            "spawn_t_s": rng.uniform(0.0, config.MISSION_DURATION_S),
+        }
+    return pois
+
+
+def _pick_next_target(current_pos: Point, candidates: dict[int, Point], priority: dict[int, float]) -> int | None:
+    """One-shot greedy priority/distance pick -- same formula as
+    GreedyPriorityDistance.plan() (PROVISIONAL, simplest reading of
+    "prioritize ... high-priority regions", no rulebook formula given), but
+    choosing ONE next target from whatever is currently known instead of a
+    full up-front permutation -- A26's mission can't precompute a route once
+    PoIs are allowed to appear mid-mission."""
+    if not candidates:
+        return None
+    eps = 1e-6
+    return max(candidates, key=lambda pid: priority[pid] / (link.distance(current_pos, candidates[pid]) + eps))
+
+
+def run_dynamic(
+    seed: int = config.RNG_SEED,
+    n_uav: int = config.N_UAV,
+    r_comm_m: float = config.R_COMM_M,
+    base_pos: Point | None = None,
+) -> dict:
+    """A26: the rulebook-accurate mission -- see this section's module
+    comment above. Only the link_degraded/uav_dropout report-gated fault
+    events (ruling A23's methodology, reused unchanged); does NOT support
+    the "all" event set (uav_fail/uav_recharge) -- _scan_hard_failure_candidates
+    needs a precomputed route, which doesn't exist once PoIs can appear
+    mid-mission. Flagged as a known gap, not built tonight."""
+    rng = config.new_rng(seed)
+    assigner: RelayAssigner = get_assigner()
+    r_comm = r_comm_m
+
+    base_pos = base_pos or (-(config.ARENA_HALF_EXTENT_M + config.BASE_OFFSET_M), 0.0)
+    uav_ids = list(range(1, n_uav + 1))
+    surveyor_id = uav_ids[0]
+    relay_ids = uav_ids[1:]
+
+    pois = _dynamic_poi_scenario(rng)
+    poi_positions = {i: p["pos"] for i, p in pois.items()}
+    poi_priority = {i: p["priority"] for i, p in pois.items()}
+    poi_spawn_t = {i: p["spawn_t_s"] for i, p in pois.items()}
+
+    n_ticks = int(config.MISSION_DURATION_S * config.TICK_HZ)
+    packet_period_ticks = max(1, round(config.TICK_HZ / config.PACKET_RATE_HZ))
+
+    degrade_earliest_tick = round(config.MISSION_DURATION_S * config.DEGRADE_FRACTION / config.TICK_S)
+    degrade_duration_ticks = max(1, round(config.DEGRADE_DURATION_S / config.TICK_S))
+    dropout_earliest_tick = round(config.MISSION_DURATION_S * config.DROPOUT_FRACTION / config.TICK_S)
+
+    surveyor_pos = base_pos
+    relay_pos: dict[int, Point] = {rid: base_pos for rid in relay_ids}
+    relay_target: dict[int, Point] = dict(relay_pos)
+    relay_status: dict[int, str] = {rid: "active" for rid in relay_ids}
+
+    known_pois: set[int] = set()
+    visited: set[int] = set()
+    pending_pois: set[int] = set()  # bugfix (A26 first draft): a PoI whose
+    # report is deferred (visited/dwelled, not yet connected, deadline not
+    # yet blown) must NOT be immediately re-pickable as the next target --
+    # without this, the surveyor re-arrived at the same still-pending PoI
+    # every tick (distance already 0) and re-dwelled it over and over
+    # instead of moving on, inflating `visits` (34 rows for 10 PoIs in the
+    # first test run) and double-tracking the same report in report_log.
+    current_target: int | None = None
+    dwell_started_at: float | None = None
+    visit_index_by_poi: dict[int, int] = {}
+    pending_reports: list[tuple[int, float]] = []  # (visit index, hard deadline t_s)
+
+    watch: dict | None = None
+    fault_window_cause: str | None = None
+    degrade_active = False
+    degrade_fire_done = False
+    degraded_relay: int | None = None
+    degrade_end_tick: int | None = None
+    dropout_fire_done = False
+    report_log: list[tuple[int, int]] = []
+    degrade_report_cursor = 0
+    dropout_report_cursor = 0
+    fault_notes: list[dict] = []
+    poi_spawns: list[dict] = []
+
+    positions: list[dict] = []
+    chains: list[dict] = []
+    visits: list[dict] = []
+    packets: list[dict] = []
+    link_samples: list[dict] = []
+    assignments: list[dict] = []
+    events: list[dict] = []
+
+    for tick in range(n_ticks):
+        t_s = tick * config.TICK_S
+
+        # 0. A26: any PoI whose spawn time has arrived becomes visible.
+        for pid, spawn_t in poi_spawn_t.items():
+            if pid not in known_pois and t_s >= spawn_t:
+                known_pois.add(pid)
+                poi_spawns.append({"poi": pid, "t_s": t_s})
+
+        # 0b. A26: pick a target if idle -- greedy priority/distance among
+        # known-and-unvisited PoIs. Never interrupts an in-progress travel
+        # leg or dwell (PROVISIONAL simplification -- avoids target-switch
+        # thrashing every time a higher-priority PoI spawns mid-flight).
+        if current_target is None:
+            available = {pid: poi_positions[pid] for pid in known_pois if pid not in visited and pid not in pending_pois}
+            current_target = _pick_next_target(surveyor_pos, available, poi_priority)
+        target_pos = poi_positions[current_target] if current_target is not None else None
+
+        # 1. Move the surveyor toward its current target (not while dwelling
+        #    or idle with no target).
+        if target_pos is not None and dwell_started_at is None:
+            surveyor_pos = _step_toward(surveyor_pos, target_pos, config.SURVEYOR_SPEED_MPS_A26 * config.TICK_S)
+
+        # 2. Chase the surveyor's live position with the relay chain -- same as run().
+        active_relay_ids = [rid for rid in relay_ids if relay_status[rid] == "active"]
+        tracked = assigner.assign(base_pos, {surveyor_id: surveyor_pos}, {surveyor_id: 1.0}, active_relay_ids, r_comm)
+        relay_target.update(tracked.relay_positions)
+        isolated = _hold_isolated_relays(base_pos, active_relay_ids, relay_pos, r_comm)
+        for rid in active_relay_ids:
+            if rid in isolated:
+                continue
+            relay_pos[rid] = _step_toward(relay_pos[rid], relay_target[rid], config.MAX_RELAY_SPEED_MPS_A26 * config.TICK_S)
+
+        live_relay_pos = {rid: relay_pos[rid] for rid in active_relay_ids}
+        chain = _chain_to_surveyor(
+            base_pos, live_relay_pos, surveyor_pos, surveyor_id, r_comm,
+            degraded_relay=degraded_relay if degrade_active else None,
+            degrade_extra_distance_m=config.DEGRADE_EXTRA_DISTANCE_M,
+        )
+        on_chain = set(_relay_ids_on_chain(chain.path))
+
+        # 3. Log positions.
+        positions.append({"t_s": t_s, "uav": "base", "x_m": base_pos[0], "y_m": base_pos[1], "role": "base"})
+        positions.append({"t_s": t_s, "uav": surveyor_id, "x_m": surveyor_pos[0], "y_m": surveyor_pos[1], "role": "surveyor"})
+        for rid in relay_ids:
+            positions.append({"t_s": t_s, "uav": rid, "x_m": relay_pos[rid][0], "y_m": relay_pos[rid][1], "role": "relay"})
+
+        # 4. Log the chain.
+        chains.append({"t_s": t_s, "path": chain.path, "link_quality": chain.link_quality})
+
+        # 5. link_samples / packets, tagged to the current target.
+        if current_target is not None:
+            link_samples.append({"t_s": t_s, "poi": current_target, "connected": chain.connected})
+            if chain.connected and tick % packet_period_ticks == 0:
+                delivered = rng.random() <= _path_pdr(chain.link_quality)
+                latency = None
+                if delivered:
+                    hops = max(1, len(chain.path) - 1)
+                    latency = (
+                        config.BASE_LATENCY_MS
+                        + hops * config.PER_HOP_LATENCY_MS
+                        + rng.uniform(-config.LATENCY_JITTER_MS, config.LATENCY_JITTER_MS)
+                    )
+                packets.append({"t_s": t_s, "poi": current_target, "delivered": delivered, "latency_ms": latency})
+
+        # 6. Ruling A23's report-gated fault events, reused unchanged --
+        #    fractions now apply to the fixed MISSION_DURATION_S rather than
+        #    an estimated duration (see this function's docstring).
+        if not degrade_fire_done:
+            picked, degrade_report_cursor = _next_report_target(
+                report_log, degrade_report_cursor, degrade_earliest_tick, visits, relay_status,
+                "link_degraded", fault_notes,
+            )
+            if picked is not None:
+                vi, candidates = picked
+                degraded_relay = rng.choice(candidates)
+                degrade_active = True
+                degrade_fire_done = True
+                degrade_end_tick = tick + degrade_duration_ticks
+                events.append({
+                    "t_s": t_s, "type": "link_degraded", "uav": degraded_relay,
+                    "poi": visits[vi]["poi"], "report_t_s": visits[vi]["reported_t_s"],
+                })
+        elif degrade_active and tick >= degrade_end_tick:
+            events.append({"t_s": t_s, "type": "link_restored", "uav": degraded_relay})
+            degrade_active = False
+
+        status_changed = False
+        change_reason: str | None = None
+        if not dropout_fire_done:
+            picked, dropout_report_cursor = _next_report_target(
+                report_log, dropout_report_cursor, dropout_earliest_tick, visits, relay_status,
+                "uav_dropout", fault_notes,
+                blocked_reason=f"relay {watch['uav']}'s recovery watch still open" if watch is not None else None,
+            )
+            if picked is not None:
+                vi, candidates = picked
+                dropped = rng.choice(candidates)
+                relay_status[dropped] = "failed"
+                events.append({
+                    "t_s": t_s, "type": "uav_dropout", "uav": dropped,
+                    "poi": visits[vi]["poi"], "report_t_s": visits[vi]["reported_t_s"],
+                })
+                watch = {"uav": dropped, "baseline_connected": chain.connected, "event_tick": tick}
+                status_changed = True
+                change_reason = "poi_report_dropout"
+                dropout_fire_done = True
+
+        if status_changed:
+            active_relay_ids_after_change = [rid for rid in relay_ids if relay_status[rid] == "active"]
+            recon = reconfigure(base_pos, {surveyor_id: surveyor_pos}, {surveyor_id: 1.0}, relay_pos, active_relay_ids_after_change, r_comm)
+            relay_target.update(recon.relay_positions)
+            fault_window_cause = change_reason
+
+        # 7. assignments.
+        for rid in active_relay_ids:
+            serves = [current_target] if rid in on_chain and current_target is not None else []
+            cause = fault_window_cause if fault_window_cause is not None else "surveyor_drift"
+            assignments.append({"t_s": t_s, "relay_uav": rid, "serves": serves, "cause": cause})
+
+        # 8. Recovery watch, same pattern as run().
+        if watch is not None and tick > watch["event_tick"]:
+            cur = 1.0 if chain.connected else 0.0
+            baseline = 1.0 if watch["baseline_connected"] else 0.0
+            if cur >= baseline:
+                events.append({"t_s": t_s, "type": "restored", "uav": watch["uav"]})
+                watch = None
+                fault_window_cause = None
+
+        # 9. A26 arrival / dwell / report state machine -- DWELL_S_A26 (3s)
+        #    and a hard deadline anchored to ARRIVAL time (arrive_t_s +
+        #    MAX_DETECT_TO_REPORT_S = 10s total), not run()'s DWELL_S=15/
+        #    REPORT_TIMEOUT_S=20 (impossible under the rulebook's 10s
+        #    deadline -- see config.py's DWELL_S_A26 comment).
+        if current_target is not None:
+            if dwell_started_at is None:
+                if link.distance(surveyor_pos, target_pos) <= config.ARRIVAL_TOLERANCE_M:
+                    dwell_started_at = t_s
+                    visits.append({
+                        "poi": current_target, "arrive_t_s": t_s, "dwell_end_t_s": None,
+                        "reported_t_s": None, "carrying_relay_ids": None,
+                        # Additive (A26): when this PoI's report stops being
+                        # on time -- lets the UI mark it "missed" without
+                        # knowing MAX_DETECT_TO_REPORT_S itself.
+                        "report_deadline_t_s": t_s + config.MAX_DETECT_TO_REPORT_S,
+                    })
+                    visit_index_by_poi[current_target] = len(visits) - 1
+            elif t_s - dwell_started_at >= config.DWELL_S_A26:
+                vi = visit_index_by_poi[current_target]
+                visits[vi]["dwell_end_t_s"] = t_s
+                deadline = visits[vi]["arrive_t_s"] + config.MAX_DETECT_TO_REPORT_S
+                if chain.connected:
+                    _record_report_success(visits, vi, t_s, tick, chain.path, report_log)
+                    visited.add(current_target)
+                elif t_s < deadline:
+                    pending_reports.append((vi, deadline))
+                    pending_pois.add(current_target)
+                else:
+                    visited.add(current_target)  # deadline already blown -- unreported, permanently
+                dwell_started_at = None
+                current_target = None  # A26: triggers re-plan next tick (step 0b)
+
+        # 10. Keep re-checking connectivity for any PoI dwelled but not yet
+        #     reported, until its hard deadline (from ARRIVAL, not dwell-end) elapses.
+        still_pending = []
+        for vi, deadline in pending_reports:
+            if chain.connected:
+                _record_report_success(visits, vi, t_s, tick, chain.path, report_log)
+                visited.add(visits[vi]["poi"])
+                pending_pois.discard(visits[vi]["poi"])
+            elif t_s < deadline:
+                still_pending.append((vi, deadline))
+            else:
+                visited.add(visits[vi]["poi"])  # timed out -- unreported, permanently
+                pending_pois.discard(visits[vi]["poi"])
+        pending_reports = still_pending
+
+    for event, fired, earliest_tick, cursor, pct in (
+        ("link_degraded", degrade_fire_done, degrade_earliest_tick, degrade_report_cursor, config.DEGRADE_FRACTION),
+        ("uav_dropout", dropout_fire_done, dropout_earliest_tick, dropout_report_cursor, config.DROPOUT_FRACTION),
+    ):
+        if fired:
+            continue
+        label = "dropout" if event == "uav_dropout" else "degradation"
+        after = f"after {pct:.0%} mission time (t>={earliest_tick * config.TICK_S:.1f}s)"
+        if not any(rtick >= earliest_tick for _, rtick in report_log):
+            note = f"{label} event could not fire -- no report succeeded {after}"
+        elif any(rtick >= earliest_tick for _, rtick in report_log[cursor:]):
+            note = f"{label} event could not fire -- a report succeeded {after} but on the run's final tick, so the run ended before the event could fire"
+        else:
+            note = f"{label} event could not fire -- every report that succeeded {after} was passed over (see this event's earlier fault_notes)"
+        fault_notes.append({"t_s": None, "event": event, "note": note})
+
+    poi_completion = []
+    for pid in pois:
+        if pid in visit_index_by_poi:
+            reported = visits[visit_index_by_poi[pid]]["reported_t_s"] is not None
+            frac = 1.0 if reported else 0.5
+        elif pid in known_pois:
+            frac = 0.0  # spawned, but never reached before the mission ended
+        else:
+            frac = None  # A26: never spawned at all during the 45-min mission -- excluded, not a failure
+        if frac is not None:
+            poi_completion.append({"poi": pid, "served_fraction": frac})
+
+    run_start = datetime.datetime.now(datetime.timezone.utc)
+    total_s = n_ticks * config.TICK_S
+    telemetry = {
+        "run_start_utc": run_start.isoformat(),
+        "run_end_utc": (run_start + datetime.timedelta(seconds=total_s)).isoformat(),
+        "total_s": total_s,
+        "conditions": {
+            "gps_class": "ideal_sim",
+            "wind": "none",
+            "n_uav": n_uav,
+            "r_comm_m": r_comm,
+            "event_set": "a23-only",
+            "scenario": "dynamic_a26",
+            "seed": seed,  # A26: the scenario is generated from this, not read from a file -- needed to reproduce it
+            "dynamic_spawn": True,
+            "base_pos": list(base_pos),
+            "arena_half_extent_m": config.ARENA_HALF_EXTENT_M,
+            "base_offset_m": config.BASE_OFFSET_M,
+            # A26: the farthest a full-fleet relay chain can reach from base
+            # (n_uav-1 relays + the surveyor = n_uav hops, each <= r_comm) --
+            # written here so the UI draws it from the telemetry instead of
+            # re-deriving link physics itself.
+            "max_chain_reach_m": n_uav * r_comm,
+            "mission_duration_s": config.MISSION_DURATION_S,
+        },
+        "pois": [
+            {"id": i, "priority": p["priority"], "x_m": p["pos"][0], "y_m": p["pos"][1], "spawn_t_s": p["spawn_t_s"]}
+            for i, p in pois.items()
+        ],
+        "packets": packets,
+        "link_samples": link_samples,
+        "assignments": assignments,
+        "events": events,
+        "poi_completion": poi_completion,
+        "positions": positions,
+        "chains": chains,
+        "visits": visits,
+        "fault_notes": fault_notes,
+        "fault_schedule": {
+            "link_degraded_earliest_t_s": degrade_earliest_tick * config.TICK_S,
+            "uav_dropout_earliest_t_s": dropout_earliest_tick * config.TICK_S,
+        },
+        "poi_spawns": poi_spawns,
+    }
+    schema.validate(telemetry)
+    return telemetry
+
+
 def _print_resilience_report(telemetry: dict) -> None:
     """Task 4 (see uavx/RULES_NOTES.md): report the hard-failure and
     comms-degradation events honestly, straight from the telemetry that was
@@ -927,9 +1304,19 @@ def main() -> None:
         "--out", type=str, default=None,
         help="output filename inside uavx/logs/ (default: survey_telemetry_seed<seed>.json)",
     )
+    parser.add_argument(
+        "--dynamic-spawn", action="store_true",
+        help="A26: run the rulebook-accurate mission (base 75m outside a 1000x1000m arena, "
+        "10 PoIs spawning at random positions/times, fixed 45-min duration, 10s report deadline) "
+        "instead of the static-scenario mission. Ignores --events/--scenario (a23-only fault "
+        "events only, no precomputed scenario file -- see run_dynamic()'s docstring).",
+    )
     args = parser.parse_args()
 
-    telemetry = run(seed=args.seed, n_uav=args.n_uav, r_comm_m=args.r_comm_m, events=args.events, scenario_path=args.scenario)
+    if args.dynamic_spawn:
+        telemetry = run_dynamic(seed=args.seed, n_uav=args.n_uav, r_comm_m=args.r_comm_m)
+    else:
+        telemetry = run(seed=args.seed, n_uav=args.n_uav, r_comm_m=args.r_comm_m, events=args.events, scenario_path=args.scenario)
     out_dir = os.path.join(os.path.dirname(__file__), "logs")
     os.makedirs(out_dir, exist_ok=True)
     out_name = args.out or f"survey_telemetry_seed{args.seed}.json"
@@ -938,13 +1325,22 @@ def main() -> None:
         json.dump(telemetry, f, indent=2)
 
     priority_by_poi = {p["id"]: p["priority"] for p in telemetry["pois"]}
-    print(f"wrote {out_path}  (n_uav={args.n_uav}, r_comm_m={args.r_comm_m}, events={args.events})")
+    mode = "dynamic-spawn (A26), events=a23-only" if args.dynamic_spawn else f"events={args.events}"
+    print(f"wrote {out_path}  (n_uav={args.n_uav}, r_comm_m={args.r_comm_m}, {mode})")
     print(f"  {len(telemetry['visits'])} PoIs visited, in order:")
     for v in telemetry["visits"]:
-        outcome = "reported" if v["reported_t_s"] is not None else "visited, UNREPORTED (timed out)"
+        if v["reported_t_s"] is not None:
+            outcome = f"reported t={v['reported_t_s']:.1f}s"
+        elif v["dwell_end_t_s"] is None:
+            # A26: the mission's fixed 45-min clock can end mid-dwell -- the
+            # last PoI was reached but never finished. Not a timeout.
+            outcome = "arrived, mission ended mid-dwell"
+        else:
+            outcome = "visited, UNREPORTED (timed out)"
+        dwell_end = f"{v['dwell_end_t_s']:.1f}s" if v["dwell_end_t_s"] is not None else "--"
         print(
             f"    PoI {v['poi']} (priority {priority_by_poi[v['poi']]}): "
-            f"arrive t={v['arrive_t_s']:.1f}s, dwell_end t={v['dwell_end_t_s']:.1f}s -> {outcome}"
+            f"arrive t={v['arrive_t_s']:.1f}s, dwell_end t={dwell_end} -> {outcome}"
         )
     delivered = sum(1 for p in telemetry["packets"] if p["delivered"])
     print(f"  packets sent: {len(telemetry['packets'])}, delivered: {delivered}")

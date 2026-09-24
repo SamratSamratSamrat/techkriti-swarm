@@ -1301,3 +1301,288 @@ unaffected by the random-layout PoI spread and reported all 6 PoIs on
 seed 1. Not investigated further tonight; flagged here in case the paper
 or a judge's question ever cites the old 150 m aggregate numbers, which no
 longer hold.
+
+## 14. Ruling A26 — mission model corrected to match the actual rulebook slide (24 Sep 2026)
+
+Samrat produced a photo of the UAV-X rulebook's own "Mission constraints"
+slide (MeitY / IIT Kanpur letterhead). Checked field by field against every
+PROVISIONAL guess in `uavx/config.py`:
+
+| Field | Old (PROVISIONAL) | Rulebook (now REAL) |
+|---|---|---|
+| Comm range | 100 m | 100 m — already correct (guessed for unrelated reasons, R_COMM_M 150->100 ruling, section 13) |
+| Operational area | 500 m half-extent (=1000x1000, coincidence) | 1000 x 1000 m |
+| Base position | at arena center (0,0) | **75 m outside the arena**, not at its center |
+| Number of PoIs | 6, static, all known at t=0 | **10, spawning at random positions AND times** during the mission |
+| Max UAV speed | 12 m/s | 5 m/s |
+| UAV flight time | 1200 s (20 min) | 1200 s (20 min) — already correct, coincidence |
+| Mission duration | ~180-220 s (dynamically estimated) | 2700 s (45 min), fixed |
+| Min inter-vehicle separation | not modeled | 20 m |
+| Max altitude | not modeled | 100 m |
+| Max detect-to-report time | DWELL_S=15 + REPORT_TIMEOUT_S=20 (35s worst case) | **10 s hard deadline** -- DWELL_S alone already exceeded this |
+
+### Reachability math (checked against link.py's real BFS, not eyeballed)
+
+Base position chosen to match the rulebook diagram: 75 m due west of the
+arena's near edge, level with its vertical center --
+`base_pos = (-(ARENA_HALF_EXTENT_M + BASE_OFFSET_M), 0.0) = (-575.0, 0.0)`.
+
+With N_UAV=4 (A20/A21: 3 interceptors + Eye, 3 usable relays) and
+R_COMM_M=100, the longest possible relay chain is base -> r1 -> r2 -> r3 ->
+surveyor = 4 hops, max reach **400 m** in a straight line (link.py's
+`is_up()` is a plain `distance <= R_COMM_M` cutoff -- no relay spacing
+trick beats this). Base sits 575 m from the arena's center, up to 1185.6 m
+from its far corner. A 200,000-sample Monte Carlo over the 1000x1000 box
+(uniform random point, straight-line distance to base, `<= 400` check)
+found **19.2% of the arena is physically reachable** by any relay chain,
+regardless of assignment strategy -- this is geometry, not a bug in
+assign.py/reconfig.py to fix.
+
+Reference points:
+- near edge midpoint (-500, 0): 75.0 m from base -- reachable (0 relays needed)
+- arena center (0, 0): 575.0 m -- **unreachable**
+- near corners (-500, +-500): 505.6 m -- **unreachable**
+- far corners (500, +-500): 1185.6 m -- **unreachable**
+
+### The placement decision
+
+Presented to Samrat as a choice: spread PoIs across the whole arena (matches
+the rulebook diagram, most PoIs will be detected but never reported in
+time) vs. restrict PoIs to the ~19% reachable pocket (looks better, quietly
+narrows the operational area from what's specified). **Samrat chose: spread
+across the whole arena, most fail, report it honestly** -- the rulebook
+calls this the "Resilient" BVLOS Swarm Challenge; a low completion rate
+under a harsh, honestly-disclosed constraint is a legitimate resilience
+story for the paper, not a bug to hide.
+
+### Implementation: `uavx/survey.py::run_dynamic()`, kept separate from `run()`
+
+Dynamic PoI spawning is a new mechanic, not a parameter change -- the
+surveyor can no longer be handed a full route at t=0 since PoIs don't all
+exist yet. Rather than rewrite `run()` (whose precomputed-`route` path is
+exactly what tonight's R_COMM_M 150->100 CP1-CP5 evidence pack was verified
+against, section 13), this is a **new function**, `run_dynamic()`, sharing
+`run()`'s helpers (`_chain_to_surveyor`, `_next_report_target`,
+`_hold_isolated_relays`, `_step_toward`, ruling A23's report-gated fault
+selection, all reused unchanged) but with its own tick loop. `run()` and
+everything already verified against it are untouched.
+
+Key design decisions, each PROVISIONAL where the rulebook is silent:
+
+- **Spawn-time distribution:** uniform random across `[0, MISSION_DURATION_S)`
+  -- the rulebook says "randomly," gives no shape. Our call, documented
+  here rather than silently assumed.
+- **Re-planning policy:** the surveyor picks its next target (greedy
+  priority/distance, same formula as `GreedyPriorityDistance`, via the new
+  `_pick_next_target()` one-shot helper) only when idle -- no target, or
+  the previous one just fully resolved. A newly-spawned higher-priority PoI
+  is picked up on the *next* choice, not by aborting an in-progress travel
+  leg or dwell. Avoids target-switch thrashing every time a PoI spawns
+  mid-flight; real mission planners generally avoid aborting a leg
+  mid-flight for the same reason.
+- **Dwell/report split of the 10 s budget:** `DWELL_S_A26 = 3.0s` (data
+  collection), leaving 7 s of margin for a report to get through once
+  back in range -- new constant, kept separate from `run()`'s
+  `DWELL_S`/`REPORT_TIMEOUT_S` (15s/20s) so the already-verified static
+  path is untouched. The report deadline is anchored to **arrival time**
+  (`arrive_t_s + MAX_DETECT_TO_REPORT_S`), not dwell-end -- "detection"
+  read as "the moment the PoI is spotted," matching the rulebook's own
+  phrase "time between POI detection and reporting."
+- **Fault-event fractions** (`DEGRADE_FRACTION`=0.40, `DROPOUT_FRACTION`=0.75,
+  ruling A23, unchanged) now apply against the fixed `MISSION_DURATION_S`
+  instead of an estimated duration -- simpler, and correct now that the
+  mission length is a rulebook fact instead of a guess.
+
+**Bug found and fixed during first smoke test:** a PoI whose report was
+deferred (dwelled, not yet connected, deadline not yet blown) was
+immediately re-pickable as the surveyor's own next target the very next
+tick -- since it hadn't been marked `visited` yet and the surveyor was
+already standing on it (distance 0), it kept re-arriving and re-dwelling
+the same PoI in a loop instead of moving on. First run: 34 `visits` logged
+for 10 PoIs. Fixed with a `pending_pois` set, excluded from the next-target
+candidate pool alongside `visited`, cleared when the deferred report
+resolves (success or timeout). After the fix: exactly 10 `visits` for 10
+PoIs, one each.
+
+### Smoke test results (multiple seeds, `n_uav=4`, `run_dynamic()`)
+
+| seed | runtime | visits | reported (1.0) | visited-unreported (0.5) | events fired |
+|---|---|---|---|---|---|
+| 1 | 0.75s | 10 | 1 | 9 | link_degraded, link_restored |
+| 2 | 1.02s | 10 | 2 | 8 | link_degraded, link_restored, uav_dropout |
+| 3 | 0.82s | 10 | 2 | 8 | link_degraded, uav_dropout, link_restored |
+| 42 | 0.88s | 10 | 2 | 8 | (neither fired -- both report-gated events found no valid report in their window) |
+
+Every PoI is eventually *visited* (the surveyor has nothing better to do
+than keep working through the list), but only 1-2 of 10 are ever
+successfully *reported* -- consistent with the ~19% reachability figure
+above. This is the honest number for the paper's communication-resilience
+section, not an error to chase down.
+
+### Known gaps -- explicitly deferred, not built tonight
+
+1. **Altitude / 3D.** Sim stays 2D (`link.py`'s `distance()` is flat
+   Euclidean, unchanged) -- consistent with the existing limitation already
+   logged in section 11. All aircraft are treated as flying at a common
+   altitude band for comm-range purposes. `MAX_ALTITUDE_M=100.0` is
+   recorded in config.py as a rulebook fact but not enforced as a flight
+   ceiling.
+2. **Min-separation (20 m) enforcement** -- `MIN_SEPARATION_M` recorded,
+   not enforced.
+3. **Battery/flight-time (20 min) enforcement** -- `RELAY_BATTERY_S` was
+   already numerically correct by coincidence; actually depleting a
+   relay/surveyor's charge mid-mission is still not implemented (same gap
+   noted against the old PROVISIONAL value).
+4. **"all" event set (uav_fail/uav_recharge) unsupported under
+   `run_dynamic()`** -- `_scan_hard_failure_candidates` needs a precomputed
+   route, which doesn't exist once PoIs can appear mid-mission. Only
+   A23's `link_degraded`/`uav_dropout` pair works in the dynamic-spawn path.
+5. **CP1-CP5 evidence pack NOT yet regenerated against this model.**
+   `evidence_pack.py` assumes a `--scenario` file to copy byte-for-byte
+   into the evidence directory; `run_dynamic()` has no such file (the
+   scenario is generated in-code from the seed). Needs either a small
+   `evidence_pack.py` change (write the generated PoI list + spawn times to
+   a file instead of copying one) or a dedicated A26 evidence-pack script.
+   Tonight's already-published R_COMM_M=100 evidence pack (section 13) is
+   now **stale** and must not be cited as Stage-1's final numbers until this
+   is done.
+6. ~~`test_a23_fault_selection.py` not updated for `run_dynamic()`~~ --
+   resolved: new `uavx/tests/test_a26_dynamic.py` (10 tests) checks every
+   constraint `run_dynamic()` claims to respect, straight from telemetry:
+   base 75 m outside the arena, 10 PoIs inside it, 45-min run, spawn times
+   random and in-mission, no PoI reached before it spawns, no PoI visited
+   twice (guards the first-draft bug), every report within 10 s of arrival,
+   every reported PoI inside `max_chain_reach_m`, no UAV over 5 m/s,
+   same-seed determinism. `test_a23_fault_selection.py` (static `run()`)
+   untouched, all 13 still pass.
+
+### Correction: the first draft broke `run()` -- "untouched" was false until fixed
+
+The first draft of A26 changed `N_POI` (6->10) and `MAX_RELAY_SPEED_MPS`
+(12->5) **in place** in `config.py`. Both are also read by `run()`'s static
+path -- `N_POI` by the internal random `_poi_scenario()` (which the A23 test
+suite uses, since its `_run()` passes no `--scenario`), and
+`MAX_RELAY_SPEED_MPS`/`SURVEYOR_SPEED_MPS` by `run()`'s movement steps -- so
+6/13 of `test_a23_fault_selection.py` failed: every seed re-picked earlier
+tonight for the R_COMM_M 150->100 migration silently changed behaviour.
+Caught by running the existing suite before claiming "run() untouched," not
+after.
+
+Fixed the same way as `DWELL_S_A26`: the real rulebook values live in
+**separate** constants used only by `run_dynamic()` --
+`N_POI_A26 = 10`, `MAX_RELAY_SPEED_MPS_A26 = SURVEYOR_SPEED_MPS_A26 = 5.0`
+-- and `N_POI`/`MAX_RELAY_SPEED_MPS` are back to 6 / 12.0 with comments
+saying why. Verified afterwards, not assumed: all 13 A23 tests pass, and
+regenerating `stage1_run.json` (`--seed 1 --n-uav 4 --events a23-only
+--scenario claude/scenario_config.json`) is identical to the committed file
+apart from wall-clock timestamps.
+
+**What this means, stated plainly:** the static `run()` path -- and so the
+CP1-CP5 evidence pack produced from it -- still flies at 12 m/s with 6
+static PoIs around a centred base. It now **violates** the rulebook's 5 m/s
+limit, not just its layout. That evidence pack is stale for Stage-1
+purposes on two counts; `run_dynamic()` is the one that matches the
+rulebook. `N_UAV` was the one shared constant safe to fix in place (4, per
+A20/A21) -- every caller that matters passes `--n-uav` explicitly.
+
+### Replay UI (`ui/`) -- now draws the rulebook layout
+
+Samrat's actual complaint was that the simulation didn't *look* like the
+rulebook diagram, and the old panel couldn't have shown it even with the
+corrected model underneath: it drew every PoI from t=0 as a small grey
+square, had no operational-area outline, and re-downloaded the whole
+telemetry every 500 ms. All changes are additive -- a static-run telemetry
+file (no `arena_half_extent_m` in `conditions`, no `spawn_t_s` on PoIs)
+renders exactly as before.
+
+- `run_dynamic()` now also writes `conditions.max_chain_reach_m`
+  (`n_uav * r_comm`), `conditions.mission_duration_s`, and
+  `visits[].report_deadline_t_s`, so the UI draws reach and deadlines from
+  telemetry instead of re-deriving link physics.
+- `ui/adapters.py` passes through `spawn_t_s`/`priority` (only when
+  `spawn_t_s` exists), a slim `visits` list (only when deadlines exist), and
+  an `arena` block from `conditions`.
+- `relay_map.js`: rounded 1000x1000 operational-area box; base labelled
+  "Operational center (BASE)" with a 75 m dimension arrow to the arena edge;
+  dashed max-relay-reach circle; PoIs as red dots (the diagram's colour)
+  that appear only at their spawn time, get a "NEW" ring for 15 s, turn green
+  with a tick when reported and hollow grey with an X when the 10 s deadline
+  passes; a mission bar (clock mm:ss / 45:00, spawned/reported/missed
+  counts); playback speeds 10x/30x/60x (advancing several ticks per frame
+  above ~10x -- a 45-min run is 45 s to watch at 60x); PDR labels skipped on
+  hops shorter than 40 px so they stop covering drone labels near base.
+- `ui/server.py` + `app.js`: the file's mtime+size is a version; the server
+  reuses the parsed state while the file is unchanged, and replies
+  `{"unchanged": true}` (~100 bytes) when the browser already has that
+  version -- was re-parsing 15 MB and re-sending 7.4 MB every 500 ms for a
+  45-min run. Still GET-only, 127.0.0.1-only, reads only the named file (A16).
+- Checked in a real browser (headless Chromium): loads in ~1 s, no page
+  errors, screenshots at t=0 / 400 / 1238 / 2600 s show PoIs appearing over
+  time, the one in-reach PoI reported, and every missed PoI lying outside the
+  reach circle.
+
+### A26 100-seed scan and the evidence-pack seed (scan: `uavx/logs/a26_seed_scan_1-100.json`)
+
+`run_dynamic(seed=1..100, n_uav=4)`, every seed, nothing filtered:
+
+| measure | result |
+|---|---|
+| PoIs spawning inside max relay reach (400 m), of 10 | mean **1.98**, min 0, max 6 |
+| PoIs reported within 10 s, of 10 | mean **1.12**, median 1, min 0, max 3 |
+| reported / reachable, pooled | **112/198 = 56.6%** |
+| PoIs visited, of 10 | mean 9.65 |
+| `link_degraded` fired | 55/100 |
+| `uav_dropout` fired | 24/100 |
+| both fired | 24/100 -- of which **18 clumped on the SAME report** (fired on the same tick), 6 off different reports |
+| dropout recovered | 7/24 (recovery 0.2 / 8.0 / 12.2 s min/median/max) |
+| **both fired, off different reports, dropout recovered** | **1/100 (seed 48)** |
+
+Three things this says, plainly:
+
+1. **The physics ceiling is ~20%, and we only reach ~57% of it.** About 2
+   of 10 PoIs are reachable at all; we report ~1.1. The other ~43% of
+   reachable PoIs are lost to *our* planning, not physics: the greedy
+   priority/distance scheduler has no idea which PoIs are reportable and
+   spends the mission flying to ones that never can be, and the relays (also
+   capped at 5 m/s) often can't form the chain before the 10 s deadline
+   closes. A reachability-aware scheduler (prefer PoIs inside
+   `max_chain_reach_m`; pre-position relays toward the target before the
+   surveyor arrives) attacks this directly -- not built tonight, top
+   recommendation.
+2. **A23's report-gated fault events barely fire under the rulebook model.**
+   They were designed when reports were frequent (6 static PoIs near base).
+   With ~1 report per 45-min run, both events usually wait for the *same*
+   first report after their 40%/75% marks and fire on the same tick --
+   which violates A23's own "two separate deliberate events, well separated
+   in time." Changing the trigger (e.g. gate on live packet traffic instead
+   of report success) would change A23/A25's ratified methodology -- a
+   Master decision, not made here.
+3. **Seed 48 is a disclosed 1-in-100 pick.** It is the only seed in 1-100
+   meeting A23 in full: degradation at 1981.8 s (off PoI 7's report),
+   dropout at 2046.6 s (off PoI 6's report, 64.8 s later), dropout recovery
+   8.0 s measured, 2/10 reported, both inside reach, 0 outside (physics
+   check). The A26 evidence pack (`uavx/logs/a26/`) is built on it. Seed 4
+   (first seed where both events fire and the dropout recovers) was tried
+   first and rejected: both events fired on the same tick off one report.
+   Any paper or demo citing the seed-48 pack must also cite the 100-seed
+   numbers above -- quoting seed 48 alone would misrepresent how often this
+   happens. Both A23 events land on relay_2 in seed 48; same as the
+   previously accepted static pack (seed 1), where A23's "different relay"
+   wording was also not enforced by the implementation (the degraded relay
+   has been restored by the time the dropout fires).
+
+**A25 froze seed 1 for the demo -- that was for the static model.** Seed 1
+under `run_dynamic()` fires only the degradation (no report after 75%), so
+it cannot demonstrate A23. Switching the demo to seed 48 is a decision for
+Master/Samrat, flagged, not assumed.
+
+**`poi_completion` overstates the result.** `UavxProfile` scores a
+visited-but-unreported PoI as 0.5, so seed 48 shows `poi_completion 0.55`
+while only 2/10 PoIs actually reached base. Under the rulebook's 10 s rule a
+visit with no report delivers nothing to the GCS. The paper's headline
+should be **"2/10 reported (3/10 reachable)"**, not 0.55.
+
+The old static-model pack in `uavx/logs/` (`stage1_run.json`,
+`event_metrics.json`, `stage1_summary.txt`, `scenario_config.json`) is kept,
+not overwritten, for comparison -- it is stale on layout, PoI count, spawn
+timing and speed (12 m/s) and must not be cited as Stage-1's result.

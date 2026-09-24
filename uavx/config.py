@@ -31,47 +31,104 @@ EVAL_WEIGHTS = {
 # area" -- this is not a team choice.
 N_BASE = 1
 
-# --- PROVISIONAL: the rulebook only ever says "a fleet of UAVs" (page 3),
-# with no fixed count.
-N_UAV = 5
+# --- REAL (A26, 24 Sep 2026): fleet count is still not fixed by the
+# rulebook's mission-constraints slide, but A20 already settled this for the
+# whole project (3 interceptors + 1 Eye = 4 aircraft, Eye relay-eligible per
+# A21). N_UAV's default here has been stale -- every real evidence run has
+# passed --n-uav 4 explicitly since A20. Fixed to match rather than left
+# pointing at an unused placeholder.
+N_UAV = 4
 
-# --- PROVISIONAL: number, layout, and priority distribution of Points of
-# Interest. The rulebook defines PoIs conceptually (pages 3-4: "designated
-# Points of Interest", "prioritize newly emerging high-priority regions")
-# but gives no count, positions, or the rule for assigning each one's
-# priority weight.
+# --- N_POI stays 6 (PROVISIONAL, unchanged) here -- NOT corrected to the
+# rulebook's real 10. Same reason as MAX_RELAY_SPEED_MPS above: run()'s
+# internal random-scenario path (test_a23_fault_selection.py's `_run()`
+# calls survey.run() with no --scenario file, so it draws from
+# `_poi_scenario()`, which reads config.N_POI) has seeds re-picked tonight
+# against a 6-PoI layout -- changing this to 10 silently reshuffles every
+# seed's behaviour and broke the same 6/13 tests. N_POI_A26 = 10 (further
+# down this file) is the real rulebook value, used ONLY by run_dynamic()'s
+# _dynamic_poi_scenario(). See uavx/RULES_NOTES.md section 14.
 N_POI = 6
-POI_PRIORITY_LEVELS = (1.0, 2.0, 3.0)  # low / medium / high, drawn uniformly per PoI
+POI_PRIORITY_LEVELS = (1.0, 2.0, 3.0)  # low / medium / high, drawn uniformly per PoI -- still PROVISIONAL, rulebook doesn't give a priority scheme
 
-# --- PROVISIONAL: arena size. The rulebook never states an area or
-# coordinate bound. Local flat-earth metres, base station fixed at the
-# origin (no lat/lon needed -- see RULES_NOTES.md on why this sim skips the
-# geometry.py metre<->latlon conversion that CLAUDE.md's flight-commander
-# project uses).
+# --- REAL (A26, 24 Sep 2026): "Operational area - 1000m x 1000m" per the
+# rulebook slide. ARENA_HALF_EXTENT_M=500 already matched this by
+# coincidence (it was sized independently, before this slide was seen -- see
+# the superseded comment this replaces in git history at commit ad4351c).
+# Local flat-earth metres, arena centered at the origin (no lat/lon needed --
+# see RULES_NOTES.md on why this sim skips the geometry.py metre<->latlon
+# conversion that CLAUDE.md's flight-commander project uses).
 ARENA_HALF_EXTENT_M = 500.0  # PoIs are drawn from within this half-extent
-# Chosen relative to R_COMM_M and N_UAV below so a chain of relays can just
-# about span the arena (N_UAV=5 relays * ~120 m/hop =~ 600 m) -- large
-# enough that reconfig.py has real work to do, not so large that most PoIs
-# are unreachable regardless of assignment.
+
+# --- REAL (A26, 24 Sep 2026): "Operational center [base] -- 75m -- Operational
+# area" per the rulebook diagram. Base sits OUTSIDE the arena, not at its
+# center. The diagram shows base to the west of the arena, roughly level with
+# its vertical center -- exact attachment point beyond that isn't given, so
+# "centered on the near edge" is our reading, not a rulebook number.
+BASE_OFFSET_M = 75.0
+# WARNING checked against link.py's real BFS reach, not eyeballed: with
+# N_UAV=4 (3 usable relays) and R_COMM_M=100 below, the longest possible
+# relay chain (base -> r1 -> r2 -> r3 -> surveyor, 4 hops) reaches at most
+# 4 * 100 = 400 m from base in a straight line. Base sits
+# ARENA_HALF_EXTENT_M + BASE_OFFSET_M = 575 m from arena center and up to
+# ~1186 m from the far corner. Most of the 1000x1000 arena -- roughly its
+# eastern two-thirds -- is therefore PHYSICALLY UNREACHABLE by any relay
+# chain regardless of PoI placement or assignment strategy, not a bug to fix
+# in assign.py/reconfig.py. See uavx/RULES_NOTES.md section 13 (A26) for the
+# full reachable-region math and how PoI placement accounts for it.
 
 # --- PROVISIONAL: geofence. The rulebook only says (page 5, Safety) that
 # UAVs "should not go out of geo-fenced areas" -- no numeric fence is given.
 GEOFENCE_HALF_EXTENT_M = ARENA_HALF_EXTENT_M * 1.1
 
-# --- PROVISIONAL: link / comms model. The rulebook states the organizers
-# "will provide ... communication assumptions" (page 5) but that model was
-# not present in the document available when this was written. Until it
-# arrives we use a threshold + linear-taper model, parameterised by a single
-# comms radius (see link.py for the physical reasoning behind the shape).
+# --- REAL (A26, 24 Sep 2026): "Max comm range - 100m" per the rulebook
+# slide -- this was already set to 100.0 from the earlier 150->100 ruling
+# (24 Sep 2026, before this slide was seen) for unrelated reasons; now
+# directly confirmed rather than guessed. LINK_SOFT_BAND_FRAC remains
+# PROVISIONAL -- the rulebook gives a hard cutoff, not a fade-band shape;
+# organizers "will provide communication assumptions" (page 5) beyond the
+# single number on this slide, which have not arrived.
 R_COMM_M = 100.0
 LINK_SOFT_BAND_FRAC = 0.8  # PDR is 1.0 out to R_COMM_M * this fraction
 
-# --- PROVISIONAL: relay motion / battery. Not specified by the rulebook
-# beyond "UAVs having limited flight time" (page 3) and "No UAV should be
-# without charge" (page 5, Safety) -- the actual numbers are our guess.
+# --- MAX_RELAY_SPEED_MPS stays 12.0 (PROVISIONAL, unchanged) here --
+# NOT corrected to the rulebook's real 5 m/s. First draft of A26 did change
+# this constant globally and it broke 6/13 of test_a23_fault_selection.py's
+# tests, because run()'s static-scenario path (tonight's already-verified
+# R_COMM_M 150->100 CP1-CP5 evidence pack, section 13) reads this same
+# constant and its seeds were timed against 12 m/s. Same split as
+# DWELL_S_A26 below: MAX_RELAY_SPEED_MPS_A26 = 5.0 (further down this file)
+# is the real rulebook value, used ONLY by run_dynamic(). This one stays a
+# guess until run()'s path is deliberately re-verified at 5 m/s too -- see
+# uavx/RULES_NOTES.md section 14.
 MAX_RELAY_SPEED_MPS = 12.0
-RELAY_BATTERY_S = 20 * 60.0     # not yet enforced by sim.py -- see RULES_NOTES.md
-RELAY_RECHARGE_S = 5 * 60.0     # time a recharging relay stays unavailable
+# --- REAL (A26, 24 Sep 2026): "UAV max flight time - 20 mins" per the
+# rulebook slide. This ALREADY equalled 1200s (20 min) as a PROVISIONAL
+# guess -- confirmed correct by coincidence, now REAL. Still "not yet
+# enforced by sim.py" -- was fine to leave unenforced as a guess; now that
+# it's a real rulebook limit, enforcing it (a relay/surveyor that runs out of
+# charge mid-mission) is flagged as a known gap, not built tonight -- see
+# uavx/RULES_NOTES.md section 13 (A26).
+RELAY_BATTERY_S = 20 * 60.0
+RELAY_RECHARGE_S = 5 * 60.0     # time a recharging relay stays unavailable -- still PROVISIONAL, no rulebook number
+
+# --- REAL (A26, 24 Sep 2026): "Mission operation - 45 mins" per the
+# rulebook slide. survey.py currently sizes its own run length dynamically
+# from the route (_estimate_duration_s) rather than reading this constant --
+# kept here as the rulebook's stated ceiling for reference / for a future
+# hard-cutoff check ("land by 45 min"), not yet wired in as an enforced cap.
+MISSION_DURATION_S = 45 * 60.0
+
+# --- REAL (A26, 24 Sep 2026), not yet enforced -- known gaps, see
+# uavx/RULES_NOTES.md section 13 (A26):
+MIN_SEPARATION_M = 20.0   # "Min distance between vehicles - 20m"
+MAX_ALTITUDE_M = 100.0    # "Operational height max - 100m" -- sim is 2D (x,y
+                           # only, see link.py's distance()); altitude is not
+                           # modeled and all aircraft are treated as flying at
+                           # a common altitude band for comm-range purposes.
+MAX_DETECT_TO_REPORT_S = 10.0  # "Max time between POI detection and
+                           # reporting to center - 10s" -- conflicts with
+                           # DWELL_S=15.0 below; see the DWELL_S comment.
 
 # --- PROVISIONAL: simulation clock.
 TICK_HZ = 5.0
@@ -97,6 +154,36 @@ LATENCY_JITTER_MS = 5.0
 DWELL_S = 15.0            # PROVISIONAL: time spent at a PoI before reporting
 REPORT_TIMEOUT_S = 20.0   # PROVISIONAL: how long to keep retrying a report
 ARRIVAL_TOLERANCE_M = 3.0  # PROVISIONAL: "close enough" to count as arrived
+
+# --- A26 (24 Sep 2026), dynamic-spawn mission model ONLY (run(dynamic_spawn=True)
+# -- see survey.py). The rulebook's MAX_DETECT_TO_REPORT_S=10.0 (above) makes
+# the DWELL_S=15/REPORT_TIMEOUT_S=20 pair above impossible to satisfy (dwell
+# alone already exceeds the whole deadline), so the dynamic-spawn path uses
+# its own short dwell instead of reusing those two constants. The static-
+# scenario path (dynamic_spawn=False, everything CP1-CP6 was verified
+# against tonight) is untouched -- still DWELL_S=15/REPORT_TIMEOUT_S=20,
+# unaffected by this section. PROVISIONAL split of the 10s budget: the
+# rulebook gives the total deadline, not how much of it is "dwelling" vs.
+# "reporting" -- 3s dwell (quick sensor read) leaves 7s of margin for a
+# report to get through once the surveyor is back in range, which is enough
+# for several TICK_S=0.2s retries without being so long it eats the whole
+# budget before a single report attempt happens.
+DWELL_S_A26 = 3.0
+
+# --- A26 (24 Sep 2026), dynamic-spawn mission model ONLY (run(dynamic_spawn=True)):
+# "Max speed - 5m/s" per the rulebook slide -- REAL, but kept as its own
+# constant rather than overwriting MAX_RELAY_SPEED_MPS above (see that
+# constant's comment for why: doing so broke 6/13 of
+# test_a23_fault_selection.py's tests, which time run()'s static-scenario
+# path -- tonight's already-verified R_COMM_M 150->100 evidence pack --
+# against 12 m/s).
+MAX_RELAY_SPEED_MPS_A26 = 5.0
+SURVEYOR_SPEED_MPS_A26 = MAX_RELAY_SPEED_MPS_A26
+
+# --- A26 (24 Sep 2026), dynamic-spawn mission model ONLY: "Number of POIs -
+# 10" per the rulebook slide -- REAL, but kept separate from N_POI above for
+# the same reason as MAX_RELAY_SPEED_MPS_A26 (see N_POI's comment).
+N_POI_A26 = 10
 # Reuse the existing relay speed cap rather than invent a second number --
 # the rulebook gives no separate speed for a "surveyor" role, and one UAV
 # moving under the same flight-time constraint as a relay is the simplest

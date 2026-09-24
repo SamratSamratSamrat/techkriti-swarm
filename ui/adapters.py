@@ -40,6 +40,13 @@ def empty_state() -> dict[str, Any]:
         "pois_available": False,
         "events": None,
         "events_available": False,
+        # Additive (A26): only present for run_dynamic() telemetry. Static
+        # runs leave all three unavailable and the panel draws exactly as
+        # before.
+        "visits": None,
+        "visits_available": False,
+        "arena": None,
+        "arena_available": False,
     }
 
 
@@ -95,14 +102,53 @@ def extract_state(telemetry: dict) -> dict:
 
     pois = telemetry.get("pois")
     if isinstance(pois, list):
-        clean = [
-            {"id": p["id"], "x_m": p["x_m"], "y_m": p["y_m"]}
-            for p in pois
-            if isinstance(p, dict) and "id" in p and "x_m" in p and "y_m" in p
-        ]
+        clean = []
+        for p in pois:
+            if not (isinstance(p, dict) and "id" in p and "x_m" in p and "y_m" in p):
+                continue
+            row = {"id": p["id"], "x_m": p["x_m"], "y_m": p["y_m"]}
+            # Additive (A26): passed through only when present, so static
+            # runs' PoIs are byte-for-byte what they were before.
+            if isinstance(p.get("spawn_t_s"), (int, float)):
+                row["spawn_t_s"] = p["spawn_t_s"]
+                if isinstance(p.get("priority"), (int, float)):
+                    row["priority"] = p["priority"]
+            clean.append(row)
         if clean:
             state["pois"] = clean
             state["pois_available"] = True
+
+    # visits (additive, A26): only the three timestamps the panel needs to
+    # colour a PoI (visited / reported / missed) at any replay tick. Only
+    # passed through when the run recorded report deadlines -- i.e. a
+    # run_dynamic() run -- so static-run behaviour is unchanged.
+    visits = telemetry.get("visits")
+    if isinstance(visits, list):
+        clean = [
+            {
+                "poi": v["poi"],
+                "arrive_t_s": v["arrive_t_s"],
+                "reported_t_s": v.get("reported_t_s"),
+                "report_deadline_t_s": v["report_deadline_t_s"],
+            }
+            for v in visits
+            if isinstance(v, dict) and "poi" in v and "arrive_t_s" in v and isinstance(v.get("report_deadline_t_s"), (int, float))
+        ]
+        if clean:
+            state["visits"] = clean
+            state["visits_available"] = True
+
+    # arena (additive, A26): the operational-area geometry, read straight
+    # from telemetry.conditions -- the panel never imports uavx/config.py.
+    cond = telemetry.get("conditions")
+    if isinstance(cond, dict) and isinstance(cond.get("arena_half_extent_m"), (int, float)):
+        state["arena"] = {
+            "half_extent_m": cond["arena_half_extent_m"],
+            "base_offset_m": cond.get("base_offset_m"),
+            "max_chain_reach_m": cond.get("max_chain_reach_m"),
+            "mission_duration_s": cond.get("mission_duration_s"),
+        }
+        state["arena_available"] = True
 
     # events: t_s/type/uav only, from telemetry["events"] -- lets the panel
     # tell a relay that has gone OFFLINE (uav_fail / uav_dropout) apart

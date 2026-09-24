@@ -1,0 +1,1002 @@
+[
+ {
+  "seed": 1,
+  "in_reach": 1,
+  "reported": 1,
+  "visited": 10,
+  "deg": true,
+  "drop": false,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 2,
+  "in_reach": 2,
+  "reported": 2,
+  "visited": 10,
+  "deg": true,
+  "drop": true,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 3,
+  "in_reach": 2,
+  "reported": 2,
+  "visited": 10,
+  "deg": true,
+  "drop": true,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 4,
+  "in_reach": 2,
+  "reported": 1,
+  "visited": 10,
+  "deg": true,
+  "drop": true,
+  "recovered": true,
+  "recovery_s": 0.1999999999998181
+ },
+ {
+  "seed": 5,
+  "in_reach": 2,
+  "reported": 1,
+  "visited": 10,
+  "deg": true,
+  "drop": false,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 6,
+  "in_reach": 2,
+  "reported": 1,
+  "visited": 10,
+  "deg": false,
+  "drop": false,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 7,
+  "in_reach": 6,
+  "reported": 3,
+  "visited": 10,
+  "deg": true,
+  "drop": true,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 8,
+  "in_reach": 1,
+  "reported": 0,
+  "visited": 10,
+  "deg": false,
+  "drop": false,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 9,
+  "in_reach": 2,
+  "reported": 1,
+  "visited": 8,
+  "deg": true,
+  "drop": true,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 10,
+  "in_reach": 1,
+  "reported": 1,
+  "visited": 10,
+  "deg": false,
+  "drop": false,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 11,
+  "in_reach": 2,
+  "reported": 0,
+  "visited": 9,
+  "deg": false,
+  "drop": false,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 12,
+  "in_reach": 3,
+  "reported": 2,
+  "visited": 10,
+  "deg": true,
+  "drop": false,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 13,
+  "in_reach": 2,
+  "reported": 0,
+  "visited": 9,
+  "deg": false,
+  "drop": false,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 14,
+  "in_reach": 3,
+  "reported": 2,
+  "visited": 10,
+  "deg": true,
+  "drop": false,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 15,
+  "in_reach": 1,
+  "reported": 1,
+  "visited": 10,
+  "deg": true,
+  "drop": false,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 16,
+  "in_reach": 2,
+  "reported": 1,
+  "visited": 8,
+  "deg": false,
+  "drop": false,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 17,
+  "in_reach": 0,
+  "reported": 0,
+  "visited": 10,
+  "deg": false,
+  "drop": false,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 18,
+  "in_reach": 2,
+  "reported": 2,
+  "visited": 10,
+  "deg": true,
+  "drop": true,
+  "recovered": true,
+  "recovery_s": 8.799999999999727
+ },
+ {
+  "seed": 19,
+  "in_reach": 4,
+  "reported": 2,
+  "visited": 8,
+  "deg": true,
+  "drop": false,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 20,
+  "in_reach": 5,
+  "reported": 3,
+  "visited": 10,
+  "deg": false,
+  "drop": false,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 21,
+  "in_reach": 2,
+  "reported": 2,
+  "visited": 10,
+  "deg": true,
+  "drop": true,
+  "recovered": true,
+  "recovery_s": 12.200000000000045
+ },
+ {
+  "seed": 22,
+  "in_reach": 0,
+  "reported": 0,
+  "visited": 9,
+  "deg": false,
+  "drop": false,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 23,
+  "in_reach": 4,
+  "reported": 2,
+  "visited": 10,
+  "deg": true,
+  "drop": false,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 24,
+  "in_reach": 1,
+  "reported": 0,
+  "visited": 10,
+  "deg": false,
+  "drop": false,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 25,
+  "in_reach": 2,
+  "reported": 2,
+  "visited": 10,
+  "deg": true,
+  "drop": true,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 26,
+  "in_reach": 0,
+  "reported": 0,
+  "visited": 10,
+  "deg": false,
+  "drop": false,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 27,
+  "in_reach": 2,
+  "reported": 0,
+  "visited": 9,
+  "deg": false,
+  "drop": false,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 28,
+  "in_reach": 3,
+  "reported": 2,
+  "visited": 10,
+  "deg": true,
+  "drop": true,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 29,
+  "in_reach": 3,
+  "reported": 1,
+  "visited": 10,
+  "deg": true,
+  "drop": false,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 30,
+  "in_reach": 0,
+  "reported": 0,
+  "visited": 10,
+  "deg": false,
+  "drop": false,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 31,
+  "in_reach": 4,
+  "reported": 2,
+  "visited": 10,
+  "deg": true,
+  "drop": false,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 32,
+  "in_reach": 1,
+  "reported": 1,
+  "visited": 9,
+  "deg": true,
+  "drop": true,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 33,
+  "in_reach": 1,
+  "reported": 1,
+  "visited": 10,
+  "deg": true,
+  "drop": false,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 34,
+  "in_reach": 2,
+  "reported": 1,
+  "visited": 10,
+  "deg": true,
+  "drop": true,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 35,
+  "in_reach": 2,
+  "reported": 1,
+  "visited": 10,
+  "deg": true,
+  "drop": false,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 36,
+  "in_reach": 2,
+  "reported": 2,
+  "visited": 10,
+  "deg": true,
+  "drop": true,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 37,
+  "in_reach": 1,
+  "reported": 1,
+  "visited": 9,
+  "deg": true,
+  "drop": true,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 38,
+  "in_reach": 2,
+  "reported": 2,
+  "visited": 10,
+  "deg": true,
+  "drop": false,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 39,
+  "in_reach": 1,
+  "reported": 1,
+  "visited": 10,
+  "deg": false,
+  "drop": false,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 40,
+  "in_reach": 1,
+  "reported": 0,
+  "visited": 10,
+  "deg": false,
+  "drop": false,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 41,
+  "in_reach": 2,
+  "reported": 0,
+  "visited": 10,
+  "deg": false,
+  "drop": false,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 42,
+  "in_reach": 2,
+  "reported": 2,
+  "visited": 10,
+  "deg": false,
+  "drop": false,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 43,
+  "in_reach": 3,
+  "reported": 1,
+  "visited": 10,
+  "deg": false,
+  "drop": false,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 44,
+  "in_reach": 3,
+  "reported": 0,
+  "visited": 9,
+  "deg": false,
+  "drop": false,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 45,
+  "in_reach": 4,
+  "reported": 2,
+  "visited": 10,
+  "deg": true,
+  "drop": false,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 46,
+  "in_reach": 0,
+  "reported": 0,
+  "visited": 10,
+  "deg": false,
+  "drop": false,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 47,
+  "in_reach": 4,
+  "reported": 2,
+  "visited": 9,
+  "deg": true,
+  "drop": false,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 48,
+  "in_reach": 3,
+  "reported": 2,
+  "visited": 9,
+  "deg": true,
+  "drop": true,
+  "recovered": true,
+  "recovery_s": 7.999999999999773
+ },
+ {
+  "seed": 49,
+  "in_reach": 1,
+  "reported": 1,
+  "visited": 10,
+  "deg": false,
+  "drop": false,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 50,
+  "in_reach": 0,
+  "reported": 0,
+  "visited": 8,
+  "deg": false,
+  "drop": false,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 51,
+  "in_reach": 2,
+  "reported": 2,
+  "visited": 10,
+  "deg": true,
+  "drop": false,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 52,
+  "in_reach": 0,
+  "reported": 0,
+  "visited": 8,
+  "deg": false,
+  "drop": false,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 53,
+  "in_reach": 0,
+  "reported": 0,
+  "visited": 9,
+  "deg": false,
+  "drop": false,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 54,
+  "in_reach": 3,
+  "reported": 1,
+  "visited": 10,
+  "deg": true,
+  "drop": true,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 55,
+  "in_reach": 2,
+  "reported": 2,
+  "visited": 9,
+  "deg": true,
+  "drop": false,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 56,
+  "in_reach": 2,
+  "reported": 1,
+  "visited": 10,
+  "deg": true,
+  "drop": false,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 57,
+  "in_reach": 4,
+  "reported": 2,
+  "visited": 9,
+  "deg": true,
+  "drop": true,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 58,
+  "in_reach": 2,
+  "reported": 1,
+  "visited": 10,
+  "deg": false,
+  "drop": false,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 59,
+  "in_reach": 3,
+  "reported": 3,
+  "visited": 10,
+  "deg": true,
+  "drop": false,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 60,
+  "in_reach": 4,
+  "reported": 3,
+  "visited": 10,
+  "deg": true,
+  "drop": true,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 61,
+  "in_reach": 1,
+  "reported": 1,
+  "visited": 9,
+  "deg": false,
+  "drop": false,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 62,
+  "in_reach": 4,
+  "reported": 1,
+  "visited": 9,
+  "deg": true,
+  "drop": false,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 63,
+  "in_reach": 2,
+  "reported": 1,
+  "visited": 9,
+  "deg": true,
+  "drop": false,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 64,
+  "in_reach": 2,
+  "reported": 1,
+  "visited": 10,
+  "deg": true,
+  "drop": false,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 65,
+  "in_reach": 2,
+  "reported": 1,
+  "visited": 10,
+  "deg": true,
+  "drop": true,
+  "recovered": true,
+  "recovery_s": 0.20000000000027285
+ },
+ {
+  "seed": 66,
+  "in_reach": 2,
+  "reported": 1,
+  "visited": 9,
+  "deg": true,
+  "drop": true,
+  "recovered": true,
+  "recovery_s": 10.0
+ },
+ {
+  "seed": 67,
+  "in_reach": 4,
+  "reported": 3,
+  "visited": 10,
+  "deg": true,
+  "drop": true,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 68,
+  "in_reach": 0,
+  "reported": 0,
+  "visited": 10,
+  "deg": false,
+  "drop": false,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 69,
+  "in_reach": 1,
+  "reported": 1,
+  "visited": 9,
+  "deg": false,
+  "drop": false,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 70,
+  "in_reach": 1,
+  "reported": 1,
+  "visited": 10,
+  "deg": false,
+  "drop": false,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 71,
+  "in_reach": 2,
+  "reported": 1,
+  "visited": 10,
+  "deg": false,
+  "drop": false,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 72,
+  "in_reach": 2,
+  "reported": 1,
+  "visited": 10,
+  "deg": false,
+  "drop": false,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 73,
+  "in_reach": 1,
+  "reported": 0,
+  "visited": 8,
+  "deg": false,
+  "drop": false,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 74,
+  "in_reach": 1,
+  "reported": 0,
+  "visited": 9,
+  "deg": false,
+  "drop": false,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 75,
+  "in_reach": 2,
+  "reported": 1,
+  "visited": 10,
+  "deg": false,
+  "drop": false,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 76,
+  "in_reach": 2,
+  "reported": 1,
+  "visited": 10,
+  "deg": false,
+  "drop": false,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 77,
+  "in_reach": 2,
+  "reported": 1,
+  "visited": 9,
+  "deg": true,
+  "drop": false,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 78,
+  "in_reach": 1,
+  "reported": 0,
+  "visited": 10,
+  "deg": false,
+  "drop": false,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 79,
+  "in_reach": 2,
+  "reported": 2,
+  "visited": 10,
+  "deg": true,
+  "drop": false,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 80,
+  "in_reach": 3,
+  "reported": 2,
+  "visited": 10,
+  "deg": true,
+  "drop": false,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 81,
+  "in_reach": 1,
+  "reported": 0,
+  "visited": 10,
+  "deg": false,
+  "drop": false,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 82,
+  "in_reach": 3,
+  "reported": 1,
+  "visited": 10,
+  "deg": false,
+  "drop": false,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 83,
+  "in_reach": 1,
+  "reported": 1,
+  "visited": 10,
+  "deg": true,
+  "drop": false,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 84,
+  "in_reach": 1,
+  "reported": 0,
+  "visited": 10,
+  "deg": false,
+  "drop": false,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 85,
+  "in_reach": 4,
+  "reported": 2,
+  "visited": 10,
+  "deg": true,
+  "drop": false,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 86,
+  "in_reach": 3,
+  "reported": 1,
+  "visited": 9,
+  "deg": true,
+  "drop": false,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 87,
+  "in_reach": 2,
+  "reported": 1,
+  "visited": 10,
+  "deg": true,
+  "drop": true,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 88,
+  "in_reach": 2,
+  "reported": 1,
+  "visited": 10,
+  "deg": true,
+  "drop": false,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 89,
+  "in_reach": 3,
+  "reported": 1,
+  "visited": 9,
+  "deg": false,
+  "drop": false,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 90,
+  "in_reach": 1,
+  "reported": 1,
+  "visited": 10,
+  "deg": true,
+  "drop": true,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 91,
+  "in_reach": 3,
+  "reported": 0,
+  "visited": 10,
+  "deg": false,
+  "drop": false,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 92,
+  "in_reach": 1,
+  "reported": 1,
+  "visited": 10,
+  "deg": true,
+  "drop": true,
+  "recovered": true,
+  "recovery_s": 0.1999999999998181
+ },
+ {
+  "seed": 93,
+  "in_reach": 2,
+  "reported": 1,
+  "visited": 10,
+  "deg": false,
+  "drop": false,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 94,
+  "in_reach": 2,
+  "reported": 1,
+  "visited": 10,
+  "deg": true,
+  "drop": false,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 95,
+  "in_reach": 1,
+  "reported": 1,
+  "visited": 10,
+  "deg": true,
+  "drop": false,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 96,
+  "in_reach": 3,
+  "reported": 3,
+  "visited": 9,
+  "deg": true,
+  "drop": true,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 97,
+  "in_reach": 1,
+  "reported": 1,
+  "visited": 9,
+  "deg": false,
+  "drop": false,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 98,
+  "in_reach": 1,
+  "reported": 1,
+  "visited": 10,
+  "deg": false,
+  "drop": false,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 99,
+  "in_reach": 0,
+  "reported": 0,
+  "visited": 10,
+  "deg": false,
+  "drop": false,
+  "recovered": false,
+  "recovery_s": null
+ },
+ {
+  "seed": 100,
+  "in_reach": 3,
+  "reported": 2,
+  "visited": 10,
+  "deg": true,
+  "drop": false,
+  "recovered": false,
+  "recovery_s": null
+ }
+]

@@ -22,6 +22,11 @@ class PoiSpec(TypedDict):
     priority: float
     x_m: float
     y_m: float
+    # Additive (A26, 24 Sep 2026, uavx/survey.py's run_dynamic() only): the
+    # tick this PoI became known to the surveyor. Absent (NotRequired) for
+    # every static-scenario run (run()) -- those PoIs all exist from t=0, as
+    # before. See uavx/RULES_NOTES.md section 13.
+    spawn_t_s: NotRequired[float]
 
 
 class Packet(TypedDict):
@@ -107,6 +112,9 @@ class Visit(TypedDict):
     # relays that carried this report. None while unreported. NotRequired so
     # telemetry written before A23 keeps validating.
     carrying_relay_ids: NotRequired[Optional[list[int]]]
+    # Additive (A26, run_dynamic() only): arrive_t_s + MAX_DETECT_TO_REPORT_S
+    # -- the moment this PoI's report stops counting as on time.
+    report_deadline_t_s: NotRequired[float]
 
 
 class FaultNote(TypedDict):
@@ -143,6 +151,11 @@ class Telemetry(TypedDict):
     # "uav_dropout_earliest_t_s"} -- so the ~40%/~75% gating is checkable
     # from the telemetry alone.
     fault_schedule: NotRequired[dict[str, float]]
+    # Additive (A26, 24 Sep 2026, run_dynamic() only): every PoI's spawn
+    # time, in the order it became known -- {"poi": id, "t_s": ...} per row.
+    # Kept separate from `events` (Event requires a "uav" field, which a PoI
+    # spawn doesn't have). See uavx/RULES_NOTES.md section 13.
+    poi_spawns: NotRequired[list[dict]]
 
 
 REQUIRED_TOP_LEVEL_KEYS = (
