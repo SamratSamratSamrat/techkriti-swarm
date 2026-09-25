@@ -1,11 +1,26 @@
-# techkriti-swarm — UAV-X Stage 1 pipeline (uavx/ -> score/ -> ui/).
-# Standard library only. No third-party packages required.
+# techkriti-swarm — repo-wide dependency list.
 #
-# Every module used by this pipeline (json, argparse, dataclasses, statistics,
-# math, csv, sqlite3, hashlib) ships in the Python 3.12+ standard library.
-# See README.md's "Requirements" section for the full statement, and
-# score/requirements.txt for the same note scoped to the scoring harness.
+# This repo has two independent parts (see README.md's "Scope note" and
+# CLAUDE.md):
 #
-# This file exists so `pip install -r requirements.txt` is a valid, harmless
-# no-op for anyone following the README's install steps from a clean shell —
-# it intentionally pins nothing because there is nothing to pin.
+# 1. uavx/ -> score/ -> ui/  (the UAV-X Stage 1 pipeline documented in
+#    README.md). Standard library only — json, argparse, dataclasses,
+#    statistics, math, csv, sqlite3, hashlib. No third-party packages.
+#    See score/requirements.txt for the same note scoped to that module.
+#
+# 2. swarm/ and tools/  (the separate anti-drone interceptor ground
+#    commander — see CLAUDE.md). This part DOES have real third-party
+#    dependencies, confirmed by grep against actual import statements:
+#
+pymavlink==2.4.49
+MAVProxy==1.8.74
+#
+# Versions above are pinned to what is actually installed and in use on
+# the development box (`pip3 show pymavlink MAVProxy`), not guessed.
+# `tools/ring.py` and `sitl_run_3uav/preflight_gate3.py` are the modules
+# that import pymavlink directly.
+#
+# Running `pip install -r requirements.txt` installs pymavlink/MAVProxy,
+# which is only needed if you intend to work on swarm/ or tools/ against
+# real ArduPilot SITL — it is not needed to run, score, or view the
+# UAV-X pipeline in part 1 above.
