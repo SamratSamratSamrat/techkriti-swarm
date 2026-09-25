@@ -1,81 +1,83 @@
 UAV-X Stage 1 -- A26 rulebook-accurate evidence run
 ============================================================
-seed/config : seed=48, n_uav=4, r_comm_m=100.0, event_set=a23-only
-scenario    : generated in-code from the seed (run_dynamic) -> written to scenario_config.json (sha256 999c626c28312ba1...)
+seed/config : seed=201, n_uav=4, r_comm_m=100.0, event_set=a23-only
+scenario    : generated in-code from the seed (run_dynamic) -> written to scenario_config.json (sha256 8fa6e3aa8be50b65...)
 duration    : 2700.0 s simulated, tick 0.2 s
 geometry    : operational area 1000 x 1000 m, base at (-575, 0) = 75 m outside it; max relay reach 400 m
 
 PoIs (random position AND spawn time, per the rulebook)
-  PoI 0: priority 3, (48, -368) m, spawns t=1443.9s, 724 m from base (OUTSIDE relay reach)
-  PoI 1: priority 3, (293, 5) m, spawns t=2057.4s, 868 m from base (OUTSIDE relay reach)
-  PoI 2: priority 3, (-334, 466) m, spawns t=290.3s, 525 m from base (OUTSIDE relay reach)
-  PoI 3: priority 3, (149, -282) m, spawns t=1502.7s, 777 m from base (OUTSIDE relay reach)
-  PoI 4: priority 1, (9, -28) m, spawns t=198.0s, 584 m from base (OUTSIDE relay reach)
-  PoI 5: priority 1, (-436, -1) m, spawns t=2566.8s, 139 m from base (inside relay reach)
-  PoI 6: priority 2, (-443, 48) m, spawns t=1886.5s, 140 m from base (inside relay reach)
-  PoI 7: priority 2, (-405, -261) m, spawns t=1749.8s, 312 m from base (inside relay reach)
-  PoI 8: priority 2, (436, 71) m, spawns t=1704.6s, 1013 m from base (OUTSIDE relay reach)
-  PoI 9: priority 1, (-148, -63) m, spawns t=1084.7s, 432 m from base (OUTSIDE relay reach)
+  PoI 0: priority 1, (-433, -174) m, spawns t=2105.6s, 225 m from base (inside relay reach)
+  PoI 1: priority 3, (-174, 199) m, spawns t=1268.7s, 448 m from base (OUTSIDE relay reach)
+  PoI 2: priority 3, (254, -49) m, spawns t=1647.1s, 830 m from base (OUTSIDE relay reach)
+  PoI 3: priority 2, (-360, 67) m, spawns t=168.1s, 225 m from base (inside relay reach)
+  PoI 4: priority 1, (-270, 405) m, spawns t=37.2s, 507 m from base (OUTSIDE relay reach)
+  PoI 5: priority 1, (-393, 59) m, spawns t=1766.7s, 192 m from base (inside relay reach)
+  PoI 6: priority 3, (-18, 216) m, spawns t=2407.6s, 598 m from base (OUTSIDE relay reach)
+  PoI 7: priority 3, (260, 219) m, spawns t=1454.1s, 864 m from base (OUTSIDE relay reach)
+  PoI 8: priority 3, (262, 279) m, spawns t=2008.2s, 882 m from base (OUTSIDE relay reach)
+  PoI 9: priority 2, (-15, 262) m, spawns t=1443.4s, 618 m from base (OUTSIDE relay reach)
 
 Timeline
-  t=  198.0s  PoI 4 SPAWNS
-  t=  290.4s  PoI 2 SPAWNS
-  t=  314.2s  surveyor arrives at PoI 4
-  t=  324.2s  PoI 4 report NOT delivered (10 s deadline missed)
-  t=  436.8s  surveyor arrives at PoI 2
-  t=  446.8s  PoI 2 report NOT delivered (10 s deadline missed)
-  t= 1084.8s  PoI 9 SPAWNS
-  t= 1195.8s  surveyor arrives at PoI 9
-  t= 1205.8s  PoI 9 report NOT delivered (10 s deadline missed)
-  t= 1444.0s  PoI 0 SPAWNS
-  t= 1502.8s  PoI 3 SPAWNS
-  t= 1516.4s  surveyor arrives at PoI 0
-  t= 1526.4s  PoI 0 report NOT delivered (10 s deadline missed)
-  t= 1545.4s  surveyor arrives at PoI 3
-  t= 1555.4s  PoI 3 report NOT delivered (10 s deadline missed)
-  t= 1704.8s  PoI 8 SPAWNS
-  t= 1749.8s  PoI 7 SPAWNS
-  t= 1795.6s  surveyor arrives at PoI 8
-  t= 1805.6s  PoI 8 report NOT delivered (10 s deadline missed)
-  t= 1886.6s  PoI 6 SPAWNS
-  t= 1978.6s  surveyor arrives at PoI 7
-  t= 1981.6s  PoI 7 report SUCCEEDS, carried by relays [2, 3, 4]
-  t= 1981.8s  EVENT link_degraded on relay_2 (selected from PoI 7's report at t=1981.6s)
-  t= 1996.8s  EVENT link_restored on relay_2
-  t= 2043.4s  surveyor arrives at PoI 6
-  t= 2046.4s  PoI 6 report SUCCEEDS, carried by relays [2]
-  t= 2046.6s  EVENT uav_dropout on relay_2 (selected from PoI 6's report at t=2046.4s)
-  t= 2054.6s  EVENT restored on relay_2
-  t= 2057.4s  PoI 1 SPAWNS
-  t= 2204.2s  surveyor arrives at PoI 1
-  t= 2214.2s  PoI 1 report NOT delivered (10 s deadline missed)
-  t= 2566.8s  PoI 5 SPAWNS
-  (10 relay-chain topology changes over the run -- full per-tick chains[] in the run file)
+  t=   37.2s  PoI 4 SPAWNS
+  t=  137.8s  surveyor arrives at PoI 4
+  t=  147.8s  PoI 4 report NOT delivered (10 s deadline missed)
+  t=  168.2s  PoI 3 SPAWNS
+  t=  237.0s  surveyor arrives at PoI 3
+  t=  240.0s  PoI 3 report SUCCEEDS, carried by relays [2, 3]
+  t= 1268.8s  PoI 1 SPAWNS
+  t= 1313.6s  surveyor arrives at PoI 1
+  t= 1323.6s  PoI 1 report NOT delivered (10 s deadline missed)
+  t= 1443.4s  PoI 9 SPAWNS
+  t= 1454.2s  PoI 7 SPAWNS
+  t= 1477.2s  surveyor arrives at PoI 9
+  t= 1487.2s  PoI 9 report NOT delivered (10 s deadline missed)
+  t= 1535.8s  surveyor arrives at PoI 7
+  t= 1545.8s  PoI 7 report NOT delivered (10 s deadline missed)
+  t= 1647.2s  PoI 2 SPAWNS
+  t= 1700.2s  surveyor arrives at PoI 2
+  t= 1710.2s  PoI 2 report NOT delivered (10 s deadline missed)
+  t= 1766.8s  PoI 5 SPAWNS
+  t= 1897.0s  surveyor arrives at PoI 5
+  t= 1900.0s  PoI 5 report SUCCEEDS, carried by relays [2, 3]
+  t= 1900.2s  EVENT link_degraded on relay_2 (selected from PoI 5's report at t=1900.0s)
+  t= 1915.2s  EVENT link_restored on relay_2
+  t= 2008.4s  PoI 8 SPAWNS
+  t= 2105.6s  PoI 0 SPAWNS
+  t= 2145.2s  surveyor arrives at PoI 8
+  t= 2155.2s  PoI 8 report NOT delivered (10 s deadline missed)
+  t= 2313.0s  surveyor arrives at PoI 0
+  t= 2316.0s  PoI 0 report SUCCEEDS, carried by relays [2, 3]
+  t= 2316.2s  EVENT uav_dropout on relay_3 (selected from PoI 0's report at t=2316.0s)
+  t= 2322.4s  EVENT restored on relay_3
+  t= 2407.8s  PoI 6 SPAWNS
+  t= 2520.6s  surveyor arrives at PoI 6
+  t= 2530.6s  PoI 6 report NOT delivered (10 s deadline missed)
+  (16 relay-chain topology changes over the run -- full per-tick chains[] in the run file)
 
 Reachability (A26 -- the physical ceiling on this run)
   PoIs inside max relay reach : 3/10
-  PoIs reported within 10 s   : 2/10  (2/3 of the reachable ones)
+  PoIs reported within 10 s   : 3/10  (3/3 of the reachable ones)
   reported PoIs outside reach : 0 (must be 0 -- physics check)
 
 Per-event metrics (A23: reported separately, never pooled)
-  link_degraded on relay_2 at t=1981.8s
+  link_degraded on relay_2 at t=1900.2s
     target in the report's carrying_relay_ids: True; on the live chain at fire tick: True
     recovery_time_s    : n/a (not_applicable)
     relay_reallocations: 0 (by_construction)
-  uav_dropout on relay_2 at t=2046.6s
+  uav_dropout on relay_3 at t=2316.2s
     target in the report's carrying_relay_ids: True; on the live chain at fire tick: True
-    recovery_time_s    : 8.0 (measured)
-    relay_reallocations: 1 (measured)
+    recovery_time_s    : 6.2 (measured)
+    relay_reallocations: 2 (measured)
 
 Run-level metrics
-  packet_delivery_ratio                    0.6738 ratio (measured)
-  latency_ms_mean                          55.9653 ms (measured)
-  latency_ms_p95                           82.7772 ms (measured)
-  connectivity_downtime_s                  943.2 s (approx)
-  relay_reallocations                      15 count (measured)
+  packet_delivery_ratio                    0.7882 ratio (measured)
+  latency_ms_mean                          66.6299 ms (measured)
+  latency_ms_p95                           82.9919 ms (measured)
+  connectivity_downtime_s                  728.6 s (approx)
+  relay_reallocations                      32 count (measured)
   relay_reallocations_relay_failure        0 count (measured)
   relay_reallocations_relay_recharge       0 count (measured)
-  relay_reallocations_poi_report_dropout   1 count (measured)
-  relay_reallocations_surveyor_drift       14 count (measured)
-  poi_completion                           0.55 ratio (measured)
-  priority_weighted_score                  0.5714 ratio (measured)
+  relay_reallocations_poi_report_dropout   2 count (measured)
+  relay_reallocations_surveyor_drift       30 count (measured)
+  poi_completion                           0.65 ratio (measured)
+  priority_weighted_score                  0.5909 ratio (measured)

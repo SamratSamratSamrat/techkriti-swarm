@@ -7,7 +7,7 @@
     "r_comm_m": 100.0,
     "event_set": "a23-only",
     "scenario": "dynamic_a26",
-    "seed": 48,
+    "seed": 201,
     "dynamic_spawn": true,
     "base_pos": [
       -575.0,
@@ -23,33 +23,31 @@
       "event": "link_degraded",
       "fraction_target": 0.4,
       "node": "relay_2",
-      "t_s": 1981.8000000000002,
+      "t_s": 1900.2,
       "selected_from_report": {
-        "poi": 7,
-        "report_t_s": 1981.6000000000001,
+        "poi": 5,
+        "report_t_s": 1900.0,
         "carrying_relay_ids": [
           2,
-          3,
-          4
+          3
         ],
         "chain_path_at_report_tick": [
           "base",
           "relay_2",
           "relay_3",
-          "relay_4",
           1
         ]
       },
       "target_in_carrying_relay_ids": true,
       "target_on_live_chain_at_fire_tick": true,
-      "window_end_t_s": 1996.8000000000002,
+      "window_end_t_s": 1915.2,
       "recovery_time_s": null,
       "recovery_time_quality": "not_applicable",
       "recovery_time_reason": "degradation never breaks connectivity (BFS uses undegraded distances) and never triggers reconfigure(); link_restored is a DEGRADE_DURATION_S timer, not a measured recovery -- uavx/RULES_NOTES.md section 12",
       "relay_reallocations": 0,
       "relay_reallocations_quality": "by_construction",
       "relay_reallocations_basis": "no reconfigure() call is caused by a degradation, so no fault-driven reallocation exists; serves-set changes that happened to fall inside the window are counted separately below and are all routine surveyor_drift",
-      "serves_changes_during_window": 4,
+      "serves_changes_during_window": 2,
       "serves_changes_during_window_causes": [
         "surveyor_drift"
       ]
@@ -57,27 +55,29 @@
     {
       "event": "uav_dropout",
       "fraction_target": 0.75,
-      "node": "relay_2",
-      "t_s": 2046.6000000000001,
+      "node": "relay_3",
+      "t_s": 2316.2000000000003,
       "selected_from_report": {
-        "poi": 6,
-        "report_t_s": 2046.4,
+        "poi": 0,
+        "report_t_s": 2316.0,
         "carrying_relay_ids": [
-          2
+          2,
+          3
         ],
         "chain_path_at_report_tick": [
           "base",
           "relay_2",
+          "relay_3",
           1
         ]
       },
       "target_in_carrying_relay_ids": true,
       "target_on_live_chain_at_fire_tick": true,
-      "recovery_time_s": 7.999999999999773,
+      "recovery_time_s": 6.199999999999818,
       "recovery_time_quality": "measured",
       "recovery_time_reason": null,
-      "restored_t_s": 2054.6,
-      "relay_reallocations": 1,
+      "restored_t_s": 2322.4,
+      "relay_reallocations": 2,
       "relay_reallocations_quality": "measured",
       "relay_reallocations_basis": "assignment rows tagged cause=poi_report_dropout (score/profiles.py)"
     }
@@ -85,28 +85,28 @@
   "fault_notes": [],
   "run_level": {
     "packet_delivery_ratio": {
-      "value": 0.6737588652482269,
+      "value": 0.7881773399014779,
       "unit": "ratio",
       "quality": "measured"
     },
     "latency_ms_mean": {
-      "value": 55.96526702962052,
+      "value": 66.62989158767243,
       "unit": "ms",
       "quality": "measured"
     },
     "latency_ms_p95": {
-      "value": 82.77719565274236,
+      "value": 82.99185614343422,
       "unit": "ms",
       "quality": "measured"
     },
     "connectivity_downtime_s": {
-      "value": 943.2,
+      "value": 728.6000000000006,
       "unit": "s",
       "quality": "approx",
       "reason": "downtime after each PoI's last sample is not counted (no end timestamp to close the interval)"
     },
     "relay_reallocations": {
-      "value": 15,
+      "value": 32,
       "unit": "count",
       "quality": "measured"
     },
@@ -121,25 +121,25 @@
       "quality": "measured"
     },
     "relay_reallocations_poi_report_dropout": {
-      "value": 1,
+      "value": 2,
       "unit": "count",
       "quality": "measured"
     },
     "relay_reallocations_surveyor_drift": {
-      "value": 14,
+      "value": 30,
       "unit": "count",
       "quality": "measured"
     },
     "poi_completion": {
-      "value": 0.55,
+      "value": 0.65,
       "unit": "ratio",
       "quality": "measured"
     },
     "priority_weighted_score": {
-      "value": 0.5714285714285714,
+      "value": 0.5909090909090909,
       "unit": "ratio",
       "quality": "measured"
     }
   },
-  "scenario_sha256": "999c626c28312ba1bc5fa618b278da0f07e03a470d6cb17ac359b8a5761cf4f2"
+  "scenario_sha256": "8fa6e3aa8be50b655d03299ff9f49a59d5a21a84a075b84ba713f7d1ec9cd350"
 }
