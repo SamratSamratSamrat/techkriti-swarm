@@ -1,11 +1,1 @@
-# techkriti-swarm — UAV-X Stage 1 pipeline (uavx/ -> score/ -> ui/).
-# Standard library only. No third-party packages required.
-#
-# Every module used by this pipeline (json, argparse, dataclasses, statistics,
-# math, csv, sqlite3, hashlib) ships in the Python 3.12+ standard library.
-# See README.md's "Requirements" section for the full statement, and
-# score/requirements.txt for the same note scoped to the scoring harness.
-#
-# This file exists so `pip install -r requirements.txt` is a valid, harmless
-# no-op for anyone following the README's install steps from a clean shell —
-# it intentionally pins nothing because there is nothing to pin.
+pymavlink
