@@ -9,12 +9,15 @@ event along the way. Pure Python, no physics engine, no hardware — see
 `uavx/RULES_NOTES.md` for the full rulebook-vs-implementation reconciliation
 (what's REAL from the rulebook vs. PROVISIONAL/guessed, and why).
 
-**Scope note:** this repository also contains `swarm/` and `tools/`, which
-are a separate, unrelated project (an anti-drone interceptor ground
-commander using `pymavlink`/ArduPilot SITL — see `CLAUDE.md`). Nothing
-below touches `swarm/`, `pymavlink`, or any drone hardware/SITL instance.
-The UAV-X pipeline below (`uavx/` → `score/` → `ui/`) is pure Python,
-offline, and read-only throughout.
+**Scope note:** this repository also contains `swarm/` — an anti-drone
+interceptor ground commander using `pymavlink`/ArduPilot SITL (see
+`CLAUDE.md`) — which is separate from the UAV-X pipeline below (`uavx/` →
+`score/` → `ui/`, pure Python, offline, read-only throughout).
+**Exception:** `tools/ring.py` and the Sprint 3 SITL ring-formation run
+under `swarm/` ARE part of this Stage-1 submission — they are the
+ring/containment evidence cited in the paper (§9.1–9.2). Steps 1-3 below
+touch only the UAV-X pipeline and never `swarm/`, `pymavlink`, or drone
+hardware/SITL.
 
 ## 0. Get the code
 
@@ -116,10 +119,23 @@ file named by `--telemetry` (see `ui/README.md`, ruling A16). Stop it with
 
 ## Demonstration video / Stage-1 evidence
 
-`uavx/logs/stress_test_seed101.json` is a separate run, deliberately
-distinct from the standard scoring baseline above, built specifically to
-exercise a genuinely hard relay failure (no idle relay in instant-swap
-range) plus a comms-degradation event — see `uavx/RULES_NOTES.md` §7 for
-how it was produced and its actual (unforced) recovery-time numbers. Score
-or view it the same way, substituting its filename for
-`survey_telemetry_seed42.json` above.
+Demo video: https://youtu.be/3r8PQpo2aMk
+
+The evidence-of-record for Stage 1 is the seed-201 run in `uavx/logs/a26/`
+— `scenario_config.json`, `event_metrics.json`, `stage1_summary.txt`, and
+the raw run `stage1_run_a26.json` (~15 MB, 13,500 ticks). See
+`uavx/logs/a26/README.md` for the full evidence-pack writeup, including
+the A23/A28 seed-selection rationale and the 1000-seed statistics.
+Reproduce it from the repo root with:
+
+```
+python3 -m uavx.survey --seed 201 --dynamic-spawn --n-uav 4 --out a26/stage1_run_a26.json
+```
+
+then score or view it the same way as above, substituting
+`uavx/logs/a26/stage1_run_a26.json` for `survey_telemetry_seed42.json`.
+
+`uavx/logs/stress_test_seed101.json` is an earlier, **superseded** stress
+run (a hand-forced hard relay failure + comms-degradation event, kept for
+history — see `uavx/RULES_NOTES.md` §7). It is not the current
+evidence-of-record; cite the seed-201 run above instead.
