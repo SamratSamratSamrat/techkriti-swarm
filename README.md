@@ -16,6 +16,13 @@ below touches `swarm/`, `pymavlink`, or any drone hardware/SITL instance.
 The UAV-X pipeline below (`uavx/` → `score/` → `ui/`) is pure Python,
 offline, and read-only throughout.
 
+## 0. Get the code
+
+```
+git clone https://github.com/SamratSamratSamrat/techkriti-swarm.git
+cd techkriti-swarm
+```
+
 ## Requirements
 
 - Python 3.12 or newer. Standard library only — **no `pip install` is
